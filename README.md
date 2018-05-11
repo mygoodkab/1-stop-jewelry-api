@@ -1,1 +1,1 @@
-"# 1-stop-jewelry-api" 
+"# single-page" 
