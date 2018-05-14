@@ -29,14 +29,13 @@ module.exports = [
                 if (params.id) { find._id = mongoObjectId(params.id); }
 
                 const res = await mongo.collection('task').find(find).toArray();
-                for (const index in res) {
-                    for (const key in res[index].field) {
-                        console.log(res[index].field[key].choice);
-                        if (res[index].field[key].choice) {
-                            res[index].field[key].choice = await mongo.collection('choice').find({ type: res[index].field[key].choice }).toArray();
-                        }
-                    }
-                }
+                // for (const index in res) {
+                //     for (const key in res[index].field) {
+                //         if (res[index].field[key].choice) {
+                //             res[index].field[key].choice = await mongo.collection('choice').find({ type: res[index].field[key].choice }).toArray();
+                //         }
+                //     }
+                // }
 
                 return {
                     data: res,
@@ -61,11 +60,11 @@ module.exports = [
             validate: {
                 payload: {
                     name: Joi.string().required().description('name task'),
-                    field: Joi.array().items({
-                        name: Joi.string().required().description('name field'),
-                        type: Joi.string().valid(['img', 'num', 'text', 'dropdown', 'checkbox', 'radio', 'date', 'time', 'perious']).required().description('field type => img, text, dropdown, checkbox, radio, date, time, perious'),
-                        choice: Joi.string().description('choice of data')
-                    }).required(),
+                    // field: Joi.array().items({
+                    //     name: Joi.string().required().description('name field'),
+                    //     type: Joi.string().valid(['img', 'num', 'text', 'dropdown', 'checkbox', 'radio', 'date', 'time', 'perious']).required().description('field type => img, text, dropdown, checkbox, radio, date, time, perious'),
+                    //     choice: Joi.string().description('choice of data')
+                    // }).required(),
                 },
             },
         },
@@ -107,11 +106,11 @@ module.exports = [
                 payload: {
                     taskId: Joi.string().length(24).optional().description('id taskId'),
                     name: Joi.string().description('name task'),
-                    field: Joi.array().items({
-                        name: Joi.string().description('name field'),
-                        type: Joi.string().valid(['img', 'text', 'dropdown', 'checkbox', 'radio', 'date', 'time', 'perious']).description('field type => img, text, dropdown, checkbox, radio, date, time, perious'),
-                        choice: Joi.string().description('choice of data')
-                    }),
+                    // field: Joi.array().items({
+                    //     name: Joi.string().description('name field'),
+                    //     type: Joi.string().valid(['img', 'text', 'dropdown', 'checkbox', 'radio', 'date', 'time', 'perious']).description('field type => img, text, dropdown, checkbox, radio, date, time, perious'),
+                    //     choice: Joi.string().description('choice of data')
+                    // }),
                 },
             },
         },
