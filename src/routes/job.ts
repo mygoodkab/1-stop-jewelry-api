@@ -53,9 +53,7 @@ module.exports = [
             validate: {
                 payload: {
                     customerId: Joi.string().length(24).optional().description('id customer'),
-                    job: Joi.array().items(
-                        Joi.object()
-                    ).description('job detail'),
+                    task: Joi.array().items().description('job detail'),
                     userId: Joi.string().length(24).optional().description('id userId'),
                 },
             },
@@ -68,6 +66,11 @@ module.exports = [
                 payload.crt = Date.now();
                 payload.isUse = true;
                 payload.status = 'pending';
+                for (const key in payload.task) {
+                    if (payload.task[key].field) {
+                            payload.task[key].field.status = 'pending';
+                    }
+                }
                 const insert = await mongo.collection('job').insertOne(payload);
 
                 // Create & Insert job-Log
@@ -97,9 +100,7 @@ module.exports = [
             validate: {
                 payload: {
                     jobId: Joi.string().length(24).optional().description('id jobId'),
-                    job: Joi.array().items(
-                        Joi.object()
-                    ).description('job detail'),
+                    task: Joi.array().items().description('job detail'),
                     userId: Joi.string().length(24).optional().description('id userId'),
                 },
             },
@@ -171,9 +172,9 @@ module.exports = [
         },
 
     },
-    {  // GET job
+    {  // GET job filter
         method: 'GET',
-        path: '/job/sort',
+        path: '/job/filter',
         config: {
             auth: false,
             description: 'Get job',
@@ -208,8 +209,8 @@ module.exports = [
                                 options.query.crt = {};
                             }
                             key === 'begin'
-                                ? options.query.crt['$gte'] =  payload[key]
-                                :  options.query.crt['$lte'] =  payload[key];
+                                ? options.query.crt['$gte'] = payload[key]
+                                : options.query.crt['$lte'] = payload[key];
                             break;
                         case 'sort':
                             options.sort = { crt: payload[key] };

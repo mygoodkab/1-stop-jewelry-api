@@ -14,7 +14,8 @@ module.exports = {
             pdf: pathSep.join(__dirname, 'upload', 'document.pdf'),
         },
         hapi: {
-            port: '3000',
+            host:'api.onestop.codth.com',
+            port: '38111',
             router: { routes: 'dist/routes/*.js' }
         },
         inventory: {

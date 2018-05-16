@@ -52,9 +52,8 @@ module.exports = [
             tags: ['api'],
             validate: {
                 payload: {
-                    choiceId: Joi.string().length(24).optional().description('id taskId'), taskId: Joi.string().length(24).optional().description('id choiceId'),
-                    choice: Joi.array().items().description('choice choice'),
-                    type: Joi.string().description('choice type'),
+                    task: Joi.string().description('choice type'),
+                    value: Joi.array().items().description('choice choice'),
                 },
             },
         },
@@ -94,8 +93,9 @@ module.exports = [
             tags: ['api'],
             validate: {
                 payload: {
-                    choice: Joi.array().items().description('choice choice'),
-                    type: Joi.string().description('choice type'),
+                    choiceId: Joi.string().length(24).optional().description('id taskId'), 
+                    task: Joi.string().description('choice type'),
+                    value: Joi.array().items().description('choice choice'),
                 },
             },
         },

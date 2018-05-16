@@ -13,6 +13,8 @@ export const config = require('./config')[process.env.NODE_ENV || 'dev'];
 const project = require('./../package');
 const swaggerOptions = {
     auth: false,
+    schemes: ['https', 'http'],
+    host: config.hapi.host,
     info: {
         title: '1 Stop Jewelry API',
         version: project.version,
