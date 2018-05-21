@@ -11,7 +11,7 @@ module.exports = [
         method: 'GET',
         path: '/orders/{id?}',
         config: {
-            auth: false,
+            // auth: false,
             description: 'Get orders',
             tags: ['api'],
             validate: {
@@ -46,14 +46,23 @@ module.exports = [
         method: 'POST',
         path: '/orders',
         config: {
-            auth: false,
+          //  auth: false,
             description: 'Insert orders ',
             notes: 'Insert orders ',
             tags: ['api'],
             validate: {
                 payload: {
                     customerId: Joi.string().length(24).optional().description('id customer'),
-                    task: Joi.array().items().description('orders detail'),
+                    /** 
+                     * example 
+                     *      Job : [{'name': 'Printing'
+                     *               'status':'pending'
+                     *               'remark': '......'},
+                     *               {'name': 'Wax Injection'
+                     *               'status':'pending'
+                     *               'remark': '......'}]
+                     */
+                    job: Joi.array().items().required().description('orders detail'),
                     userId: Joi.string().length(24).optional().description('id userId'),
                 },
             },
@@ -65,11 +74,9 @@ module.exports = [
 
                 payload.crt = Date.now();
                 payload.active = true;
-                payload.status = 'pending';
-                for (const key in payload.task) {
-                    if (payload.task[key].field) {
-                            payload.task[key].field.status = 'pending';
-                    }
+                // payload.status = 'In process';
+                for (const key in payload.job) {
+                    payload.job[key].status = 'In process';
                 }
                 const insert = await mongo.collection('orders').insertOne(payload);
 
@@ -93,14 +100,14 @@ module.exports = [
         method: 'PUT',
         path: '/orders',
         config: {
-            auth: false,
+           // auth: false,
             description: 'Update orders ',
             notes: 'Update orders ',
             tags: ['api'],
             validate: {
-                payload: {
-                    ordersId: Joi.string().length(24).optional().description('id ordersId'),
-                    task: Joi.array().items().description('orders detail'),
+                query: {
+                    ordersId: Joi.string().length(24).required().description('id ordersId'),
+                    job: Joi.array().items().description('orders detail'),
                     userId: Joi.string().length(24).optional().description('id userId'),
                 },
             },
@@ -108,7 +115,7 @@ module.exports = [
         handler: async (req, reply) => {
             try {
                 const mongo = Util.getDb(req);
-                const payload = req.payload;
+                const payload = req.query;
 
                 // Check No Data
                 const res = await mongo.collection('orders').findOne({ _id: mongoObjectId(payload.ordersId) });
@@ -143,7 +150,7 @@ module.exports = [
         method: 'DELETE',
         path: '/orders/{id}',
         config: {
-            auth: false,
+          //  auth: false,
             description: 'delete orders ',
             notes: 'delete orders',
             tags: ['api'],
@@ -176,7 +183,7 @@ module.exports = [
         method: 'GET',
         path: '/orders/filter',
         config: {
-            auth: false,
+           // auth: false,
             description: 'Get orders',
             tags: ['api'],
             validate: {
@@ -241,6 +248,57 @@ module.exports = [
                 };
             } catch (error) {
                 return Boom.badGateway(error.message, error.data);
+            }
+        },
+
+    },
+    {  // PUT orders job status
+        method: 'PUT',
+        path: '/orders/update-job',
+        config: {
+          //  auth: false,
+            description: 'Update orders ',
+            notes: 'Update orders ',
+            tags: ['api'],
+            validate: {
+                payload: {
+                    ordersId: Joi.string().length(24).required().description('id ordersId'),
+                    name: Joi.string().description('job name'),
+                    status: Joi.string().description('job status'),
+                    userId: Joi.string().length(24).optional().description('id userId'),
+                },
+            },
+        },
+        handler: async (req, reply) => {
+            try {
+                const mongo = Util.getDb(req);
+                const payload = req.payload;
+
+                // Check No Data
+                const res = await mongo.collection('orders').findOne({ _id: mongoObjectId(payload.ordersId) });
+
+                if (!res) {
+                    return (Boom.badData(`Can't find ID ${payload.ordersId}`));
+                }
+
+                // Create Update Info & Update orders
+                const updateInfo = Object.assign('', payload);
+                delete updateInfo.ordersId;
+                updateInfo.mdt = Date.now();
+
+                const update = await mongo.collection('orders').update({ _id: mongoObjectId(payload.ordersId), "job.name": payload.name }, { $set:  { "job.$.status": payload.status }  });
+
+                // Create & Insert orders-Log
+                const writeLog = await Util.writeLog(req, payload, 'orders-log', 'update-job');
+
+                // Return 200
+                return ({
+                    massage: 'OK',
+                    statusCode: 200,
+                });
+
+            } catch (error) {
+                return (Boom.badGateway(error));
             }
         },
 

@@ -39,6 +39,6 @@ module.exports = {
             thai: 7 * 60 * 60 * 1000
         },
         regex: /[\S]+/,
-        vat: 7,
+        vat: 7  
     }
 };

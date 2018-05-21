@@ -8,7 +8,6 @@ import * as inert from 'inert';
 import * as path from 'path';
 import * as vision from 'vision';
 import { Util } from './util';
-
 export const config = require('./config')[process.env.NODE_ENV || 'dev'];
 const project = require('./../package');
 const swaggerOptions = {

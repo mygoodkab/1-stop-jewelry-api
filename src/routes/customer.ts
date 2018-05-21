@@ -11,7 +11,7 @@ module.exports = [
         method: 'GET',
         path: '/customer/{id?}',
         config: {
-           // auth: false,
+            // auth: false,
             description: 'Get customer',
             tags: ['api'],
             validate: {
@@ -54,16 +54,7 @@ module.exports = [
                 payload: {
                     fullname: Joi.string().description('customer fristname'),
                     email: Joi.string().description('customer email'),
-                    address: Joi.object({
-                        no: Joi.string().description('home'),
-                        alley: Joi.string().description('alley'),
-                        villageno: Joi.string().description('village no'),
-                        road: Joi.string().description('road'),
-                        district: Joi.string().description('district'),
-                        subdistrict: Joi.string().description('sub district'),
-                        province: Joi.string().description('province'),
-                        postalcode: Joi.string().description('postal code'),
-                    }).description('address'),
+                    address: Joi.string().description('address'),
                     tel: Joi.string().description('customer phone number'),
                     username: Joi.string().required().description('customer phone number'),
                     password: Joi.string().required().description('password'),
@@ -101,25 +92,16 @@ module.exports = [
         method: 'PUT',
         path: '/customer',
         config: {
-           // auth: false,
+            // auth: false,
             description: 'Update customer ',
             notes: 'Update customer ',
             tags: ['api'],
             validate: {
-                payload: {
-                    customerId: Joi.string().length(24).optional().description('id taskId'),
+                query: {
+                    customerId: Joi.string().length(24).required().description('id taskId'),
                     fullname: Joi.string().description('customer fristname'),
                     email: Joi.string().description('customer email'),
-                    address: Joi.object({
-                        no: Joi.string().description('home'),
-                        alley: Joi.string().description('alley'),
-                        villageno: Joi.string().description('village no'),
-                        road: Joi.string().description('road'),
-                        district: Joi.string().description('district'),
-                        subdistrict: Joi.string().description('sub district'),
-                        province: Joi.string().description('province'),
-                        postalcode: Joi.string().description('postal code'),
-                    }).description('address'),
+                    address: Joi.string().description('address'),
                     tel: Joi.string().description('customer phone number'),
                     password: Joi.string().description('password'),
                 },
@@ -128,8 +110,11 @@ module.exports = [
         handler: async (req, reply) => {
             try {
                 const mongo = Util.getDb(req);
-                const payload = req.payload;
-                payload.password = Util.hash(payload.password);
+                const payload = req.query;
+                if (payload.password) {
+                    payload.password = Util.hash(payload.password);
+                }
+
 
                 // Check No Data
                 const res = await mongo.collection('customer').findOne({ _id: mongoObjectId(payload.customerId) });
@@ -197,7 +182,7 @@ module.exports = [
         method: 'GET',
         path: '/customer/filter',
         config: {
-           // auth: false,
+            // auth: false,
             description: 'Get orders',
             tags: ['api'],
             validate: {
@@ -262,46 +247,6 @@ module.exports = [
                 };
             } catch (error) {
                 return Boom.badGateway(error.message, error.data);
-            }
-        },
-    },
-    {  // Login-customer
-        method: 'POST',
-        path: '/login/customer',
-        config: {
-            auth: false,
-            description: 'Check login',
-            notes: 'Check login',
-            tags: ['api'],
-            validate: {
-                payload: {
-                    password: Joi.string().min(1).max(100).regex(config.regex).required().description('password'),
-                    username: Joi.string().min(1).max(20).regex(config.regex).required(),
-                },
-            },
-        },
-        handler: async (req, reply) => {
-            const mongo = Util.getDb(req);
-            const payload = req.payload;
-            payload.password = Util.hash(payload.password);
-            try {
-                const login = await mongo.collection('customer').findOne({ username: payload.username, password: payload.password, active: true });
-                if (login) {
-                    delete login.password;
-                    login.ts = Date.now();
-                    login.refresh = Util.hash(login);
-                    const token = JWT.sign(login, Util.jwtKey(), { expiresIn: config.jwt.timeout });
-                    const insert = await mongo.collection('token').insertOne({ token, refresh: login.refresh, method: 'login' });
-                    return ({
-                        data: token,
-                        message: 'Login success',
-                        statusCode: 200,
-                    });
-                } else {
-                    return (Boom.notFound('Invaild username or password'));
-                }
-            } catch (error) {
-                return (Boom.badGateway(error));
             }
         },
     },

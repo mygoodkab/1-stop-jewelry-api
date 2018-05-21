@@ -52,7 +52,7 @@ module.exports = [
             tags: ['api'],
             validate: {
                 payload: {
-                    task: Joi.string().description('choice type'),
+                    job: Joi.string().required().description('choice type'),
                     value: Joi.array().items().description('choice choice'),
                 },
             },
@@ -92,9 +92,9 @@ module.exports = [
             notes: 'Update choice ',
             tags: ['api'],
             validate: {
-                payload: {
-                    choiceId: Joi.string().length(24).optional().description('id taskId'), 
-                    task: Joi.string().description('choice type'),
+                query: {
+                    choiceId: Joi.string().length(24).optional().required().description('id jobId'), 
+                    job: Joi.string().description('choice type'),
                     value: Joi.array().items().description('choice choice'),
                 },
             },
@@ -102,7 +102,7 @@ module.exports = [
         handler: async (req, reply) => {
             try {
                 const mongo = Util.getDb(req);
-                const payload = req.payload;
+                const payload = req.query;
 
                 // Check No Data
                 const res = await mongo.collection('choice').findOne({ _id: mongoObjectId(payload.choiceId) });
