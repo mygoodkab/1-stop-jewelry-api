@@ -23,7 +23,7 @@ module.exports = [
             try {
                 const mongo = Util.getDb(req);
                 const params = req.params;
-                const find: any = { isUse: true, };
+                const find: any = { active: true, };
 
                 if (params.id === '{id}') { delete params.id; }
                 if (params.id) { find._id = mongoObjectId(params.id); }
@@ -63,7 +63,7 @@ module.exports = [
                 const payload = req.payload;
 
                 payload.crt = Date.now();
-                payload.isUse = true;
+                payload.active = true;
 
                 const insert = await mongo.collection('choice').insertOne(payload);
 

@@ -23,12 +23,22 @@ module.exports = [
             try {
                 const mongo = Util.getDb(req);
                 const params = req.params;
-                const find: any = { isUse: true, };
+                const find: any = { active: true, };
 
                 if (params.id === '{id}') { delete params.id; }
                 if (params.id) { find._id = mongoObjectId(params.id); }
 
                 const res = await mongo.collection('job').find(find).toArray();
+                // for (const index in res) {
+                //     for (const key in res[index].field) {
+                //         if (res[index].field[key].choice) {
+                //             for (const i in res[index].field[key].choice) {
+                //                 res[index].field[key].choice = await mongo.collection('choice').find({ _id: mongoObjectId(res[index].field[key].choice[i]) }).toArray();
+                //             }
+
+                //         }
+                //     }
+                // }
 
                 return {
                     data: res,
@@ -52,9 +62,17 @@ module.exports = [
             tags: ['api'],
             validate: {
                 payload: {
-                    customerId: Joi.string().length(24).optional().description('id customer'),
-                    task: Joi.array().items().description('job detail'),
-                    userId: Joi.string().length(24).optional().description('id userId'),
+                    name: Joi.string().required().description('name job'),
+                    /*
+                     example field [{'remark':'xxxxxx','choice':['name-xxx']},
+                                    {'item','10'}]
+                    */
+                    field: Joi.array().items().description('field in job'),
+                    // field: Joi.array().items({
+                    //     name: Joi.string().required().description('name field'),
+                    //     type: Joi.string().valid(['img', 'num', 'text', 'dropdown', 'checkbox', 'radio', 'date', 'time', 'perious']).required().description('field type => img, text, dropdown, checkbox, radio, date, time, perious'),
+                    //     choice: Joi.string().description('type of choice')
+                    // }).required(),
                 },
             },
         },
@@ -64,13 +82,8 @@ module.exports = [
                 const payload = req.payload;
 
                 payload.crt = Date.now();
-                payload.isUse = true;
-                payload.status = 'pending';
-                for (const key in payload.task) {
-                    if (payload.task[key].field) {
-                            payload.task[key].field.status = 'pending';
-                    }
-                }
+                payload.active = true;
+
                 const insert = await mongo.collection('job').insertOne(payload);
 
                 // Create & Insert job-Log
@@ -100,8 +113,17 @@ module.exports = [
             validate: {
                 payload: {
                     jobId: Joi.string().length(24).optional().description('id jobId'),
-                    task: Joi.array().items().description('job detail'),
-                    userId: Joi.string().length(24).optional().description('id userId'),
+                    name: Joi.string().description('name job'),
+                    /*
+                example field [{'remark':'xxxxxx'},
+                               {'item','10'}]
+               */
+                    field: Joi.array().items(Joi.object()).description('field in job'),
+                    // field: Joi.array().items({
+                    //     name: Joi.string().description('name field'),
+                    //     type: Joi.string().valid(['img', 'text', 'dropdown', 'checkbox', 'radio', 'date', 'time', 'perious']).description('field type => img, text, dropdown, checkbox, radio, date, time, perious'),
+                    //     choice: Joi.string().description('choice of data')
+                    // }),
                 },
             },
         },
@@ -169,79 +191,6 @@ module.exports = [
                 return (Boom.badGateway(error));
             }
 
-        },
-
-    },
-    {  // GET job filter
-        method: 'GET',
-        path: '/job/filter',
-        config: {
-            auth: false,
-            description: 'Get job',
-            tags: ['api'],
-            validate: {
-                options: {
-                    allowUnknown: true,
-                },
-                query: {
-                    begin: Joi.number().integer().min(0).optional().description('begin datetime in unix crt'),
-                    end: Joi.number().integer().min(0).optional().description('end datetime in unix crt'),
-                    jobId: Joi.string().length(24).optional().description('id job'),
-                    customerId: Joi.string().length(24).optional().description('id customer'),
-                    userId: Joi.string().length(24).optional().description('id user'),
-                    limit: Joi.number().integer().min(1).optional().description('number of data to be shown'),
-                    sort: Joi.number().integer().valid([1, -1]).optional().description('1 for asc & -1 for desc'),
-                },
-            },
-        },
-        handler: async (req, reply) => {
-            try {
-                const db = Util.getDb(req);
-                const payload = req.query;
-                const options: any = { query: {}, sort: {}, limit: 0 };
-
-                // Loop from key in payload to check query string and assign value to find/sort/limit data
-                for (const key in payload) {
-                    switch (key) {
-                        case 'begin':
-                        case 'end':
-                            if (options.query.crt === undefined) {
-                                options.query.crt = {};
-                            }
-                            key === 'begin'
-                                ? options.query.crt['$gte'] = payload[key]
-                                : options.query.crt['$lte'] = payload[key];
-                            break;
-                        case 'sort':
-                            options.sort = { crt: payload[key] };
-                            break;
-                        case 'limit':
-                            options.limit = payload;
-                            break;
-                        case 'jobId':
-                            options.query._id = mongoObjectId(payload[key]);
-                            break;
-                        case 'customerId':
-                            options.query.customerId = payload[key];
-                            break;
-                        case 'userId':
-                            options.query.customerId = payload[key];
-                            break;
-                        default:
-                            options.query[key] = payload[key];
-                            break;
-                    }
-                }
-                const jobLogs = await db.collection('job').find(options.query).sort(options.sort).limit(options.limit).toArray();
-
-                return {
-                    data: jobLogs,
-                    message: 'OK',
-                    statusCode: 200,
-                };
-            } catch (error) {
-                return Boom.badGateway(error.message, error.data);
-            }
         },
 
     },

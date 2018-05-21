@@ -27,13 +27,15 @@ module.exports = [
                     firstname: Joi.string().min(1).max(40).regex(config.regex).required(),
                     lastname: Joi.string().min(1).max(40).regex(config.regex).required(),
                     address: Joi.object({
-                        no: Joi.string().min(1).max(10).regex(config.regex).required(),
-                        road: Joi.string().min(1).max(40).regex(config.regex).required(),
-                        province: Joi.string().min(1).max(40).regex(config.regex).required(),
-                        district: Joi.string().min(1).max(40).regex(config.regex).required(),
-                        zipcode: Joi.string().min(1).max(10).regex(config.regex).required(),
-                    }),
-                    mobile: Joi.string().min(1).max(12).regex(config.regex),
+                        no: Joi.string().description('home'),
+                        alley: Joi.string().description('alley'),
+                        villageno: Joi.string().description('village no'),
+                        district: Joi.string().description('district'),
+                        subdistrict: Joi.string().description('sub district'),
+                        province: Joi.string().description('province'),
+                        postalcode: Joi.string().description('postal code'),
+                    }).description('address'),
+                    tel: Joi.string().min(1).max(12).regex(config.regex),
                     email: Joi.string().email(),
                 },
             },
@@ -42,10 +44,8 @@ module.exports = [
             try {
                 const mongo = Util.getDb(req);
                 const payload = req.payload;
-                // วันเวลาที่สร้าง
                 payload.password = Util.hash(payload.password);
-                // สถานะการใช้งาน
-                payload.isUse = true;
+                payload.active = true;
                 const insert = await mongo.collection('accounts').insert(payload);
                 return ({
                     msg: 'OK',
@@ -76,12 +76,14 @@ module.exports = [
                     firstname: Joi.string().min(1).max(40).regex(config.regex),
                     lastname: Joi.string().min(1).max(40).regex(config.regex),
                     address: Joi.object({
-                        no: Joi.string().min(1).max(10).regex(config.regex),
-                        road: Joi.string().min(1).max(40).regex(config.regex),
-                        province: Joi.string().min(1).max(40).regex(config.regex),
-                        district: Joi.string().min(1).max(40).regex(config.regex),
-                        zipcode: Joi.string().min(1).max(10).regex(config.regex),
-                    }),
+                        no: Joi.string().description('home'),
+                        alley: Joi.string().description('alley'),
+                        villageno: Joi.string().description('village no'),
+                        district: Joi.string().description('district'),
+                        subdistrict: Joi.string().description('sub district'),
+                        province: Joi.string().description('province'),
+                        postalcode: Joi.string().description('postal code'),
+                    }).description('address'),
                     mobile: Joi.string().min(1).max(12).regex(config.regex),
                     email: Joi.string().email(),
                 },
@@ -137,7 +139,7 @@ module.exports = [
             try {
                 const mongo = Util.getDb(req);
                 const params = req.params;
-                const find: any = { isUse: true, };
+                const find: any = { active: true, };
 
                 if (params.id === '{id}') { delete params.id; }
                 if (params.id) { find._id = mongoObjectId(params.id); }
@@ -158,7 +160,7 @@ module.exports = [
     },
     {  // Login
         method: 'POST',
-        path: '/login',
+        path: '/login/admin',
         config: {
             auth: false,
             description: 'Check login',
@@ -176,7 +178,7 @@ module.exports = [
             const payload = req.payload;
             payload.password = Util.hash(payload.password);
             try {
-                const login = await mongo.collection('accounts').findOne({ username: payload.username, password: payload.password, isUse: true });
+                const login = await mongo.collection('accounts').findOne({ username: payload.username, password: payload.password, active: true });
                 if (login) {
                     delete login.password;
                     login.ts = Date.now();
