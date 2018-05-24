@@ -62,17 +62,30 @@ module.exports = [
     },
     {  // GET draft-order
         method: 'GET',
-        path: '/draft-order',
+        path: '/draft-order/{id}',
         config: {
             auth: false,
             description: 'Get draft-order',
             tags: ['api'],
+            validate: {
+                params: {
+                    id: Joi.string().optional().description('id draft-order'),
+                },
+            },
         }, handler: async (req, reply) => {
             try {
                 const mongo = Util.getDb(req);
+                const params = req.params;
+                const find: any = { };
+                if (params.id === '{id}') { delete params.id; }
+                if (params.id) { find._id = mongoObjectId(params.id); }
 
-                const res = await mongo.collection('draft-order').find().toArray();
-
+                const res = await mongo.collection('draft-order').find(find).toArray();
+                for (const key in res) {
+                      delete res[key]._id
+                      delete res[key].ts
+                      delete res[key].mdt
+                }
                 return {
                     statusCode: 200,
                     message: 'OK',
@@ -97,7 +110,7 @@ module.exports = [
                 query: {
                     draftOrderId: Joi.string().length(24).optional().required().description('id draft-orderId'),
                     customerId: Joi.string().length(24).optional().required().description('id customerId'),
-                    job: Joi.array().items().description('job detail'),
+                    job: Joi.array().items(Joi.object()).description('job detail'),
                     userId: Joi.string().length(24).optional().description('id userId'),
                 },
             },
@@ -108,18 +121,18 @@ module.exports = [
                 const payload = req.query;
 
                 // Check No Data
-                const res = await mongo.collection('draft-order').findOne({ _id: mongoObjectId(payload.orderId) });
+                const res = await mongo.collection('draft-order').findOne({ _id: mongoObjectId(payload.draftOrderId) });
 
                 if (!res) {
-                    return (Boom.badData(`Can't find ID ${payload.orderId}`));
+                    return (Boom.badData(`Can't find ID ${payload.draftOrderId}`));
                 }
 
                 // Create Update Info & Update draft-order
                 const updateInfo = Object.assign('', payload);
-                delete updateInfo.orderId;
+                delete updateInfo.draftOrderId;
                 updateInfo.mdt = Date.now();
 
-                const update = await mongo.collection('draft-order').update({ _id: mongoObjectId(payload.orderId) }, { $set: updateInfo });
+                const update = await mongo.collection('draft-order').update({ _id: mongoObjectId(payload.draftOrderId) }, { $set: updateInfo });
 
                 // Create & Insert draft-order-Log
                 const writeLog = await Util.writeLog(req, payload, 'draft-order-log', 'update');

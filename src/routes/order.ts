@@ -63,7 +63,7 @@ module.exports = [
                      *               'status':'pending'
                      *               'remark': '......'}]
                      */
-                    job: Joi.array().items().required().description('orders detail'),
+                    job: Joi.array().items(Joi.object()).required().description('orders detail'),
                     userId: Joi.string().length(24).optional().description('id userId'),
                 },
             },
