@@ -23,7 +23,7 @@ module.exports = [
                 let orderNo;
                 // if first ORDER
                 if (res.length == 0) {
-                    orderNo = "0010000"
+                    orderNo = "0000001"
                     insert = await mongo.collection('draft-order').insertOne({ no: orderNo });
                 } else {
                     // get latest order-draft 
