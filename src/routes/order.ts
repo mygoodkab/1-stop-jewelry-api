@@ -53,6 +53,7 @@ module.exports = [
             validate: {
                 payload: {
                     customerId: Joi.string().length(24).optional().description('id customer'),
+                    draftOrderId: Joi.string().length(24).description('id draftOrderId'),
                     no: Joi.string().required().description('order number'),
                     /** 
                      * example 
@@ -106,7 +107,7 @@ module.exports = [
             notes: 'Update orders ',
             tags: ['api'],
             validate: {
-                query: {
+                payload: {
                     ordersId: Joi.string().length(24).required().description('id ordersId'),
                     job: Joi.array().items().description('orders detail'),
                     userId: Joi.string().length(24).optional().description('id userId'),
@@ -116,7 +117,7 @@ module.exports = [
         handler: async (req, reply) => {
             try {
                 const mongo = Util.getDb(req);
-                const payload = req.query;
+                const payload = req.payload;
 
                 // Check No Data
                 const res = await mongo.collection('orders').findOne({ _id: mongoObjectId(payload.ordersId) });
@@ -126,7 +127,7 @@ module.exports = [
                 }
 
                 // Create Update Info & Update orders
-                const updateInfo = Object.assign('', payload);
+                const updateInfo = Object.assign({}, payload);
                 delete updateInfo.ordersId;
                 updateInfo.mdt = Date.now();
 
@@ -191,7 +192,7 @@ module.exports = [
                 options: {
                     allowUnknown: true,
                 },
-                query: {
+                payload: {
                     begin: Joi.number().integer().min(0).optional().description('begin datetime in unix crt'),
                     end: Joi.number().integer().min(0).optional().description('end datetime in unix crt'),
                     ordersId: Joi.string().length(24).optional().description('id orders'),
@@ -205,7 +206,7 @@ module.exports = [
         handler: async (req, reply) => {
             try {
                 const db = Util.getDb(req);
-                const payload = req.query;
+                const payload = req.payload;
                 const options: any = { query: {}, sort: {}, limit: 0 };
 
                 // Loop from key in payload to check query string and assign value to find/sort/limit data
@@ -283,7 +284,7 @@ module.exports = [
                 }
 
                 // Create Update Info & Update orders
-                const updateInfo = Object.assign('', payload);
+                const updateInfo = Object.assign({}, payload);
                 delete updateInfo.ordersId;
                 updateInfo.mdt = Date.now();
 

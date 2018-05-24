@@ -61,7 +61,7 @@ module.exports = [
             notes: 'Insert job ',
             tags: ['api'],
             validate: {
-                query: {
+                payload: {
                     name: Joi.string().required().description('name job'),
                     /*
                      example field [{'remark':'xxxxxx','choice':['name-xxx']},
@@ -79,7 +79,7 @@ module.exports = [
         handler: async (req, reply) => {
             try {
                 const mongo = Util.getDb(req);
-                const payload = req.query;
+                const payload = req.payload;
 
                 payload.crt = Date.now();
                 payload.active = true;
@@ -140,7 +140,7 @@ module.exports = [
                 }
 
                 // Create Update Info & Update job
-                const updateInfo = Object.assign('', payload);
+                const updateInfo = Object.assign({}, payload);
                 delete updateInfo.jobId;
                 updateInfo.mdt = Date.now();
 

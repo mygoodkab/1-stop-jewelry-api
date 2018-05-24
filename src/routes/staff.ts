@@ -67,7 +67,7 @@ module.exports = [
             notes: 'Update staff ',
             tags: ['api'],
             validate: {
-                query: {
+                payload: {
                     accountId: Joi.string().length(24).required().description('id account').required(),
                     username: Joi.string().min(1).max(20).regex(config.regex),
                     password: Joi.string().min(1).max(100).regex(config.regex).description('password'),
@@ -94,7 +94,7 @@ module.exports = [
         handler: async (req, reply) => {
             try {
                 const mongo = Util.getDb(req);
-                const payload = req.query;
+                const payload = req.payload;
 
                 // Check No Data
                 const res = await mongo.collection('staff').findOne({ _id: mongoObjectId(payload.staffId) });
@@ -104,7 +104,7 @@ module.exports = [
                 }
 
                 // Create Update Info & Update staff
-                const updateInfo = Object.assign('', payload);
+                const updateInfo = Object.assign({}, payload);
                 delete updateInfo.staffId;
                 updateInfo.mdt = Date.now();
 

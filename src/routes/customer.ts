@@ -97,7 +97,7 @@ module.exports = [
             notes: 'Update customer ',
             tags: ['api'],
             validate: {
-                query: {
+                payload: {
                     customerId: Joi.string().length(24).required().description('id taskId'),
                     fullname: Joi.string().description('customer fristname'),
                     email: Joi.string().description('customer email'),
@@ -110,7 +110,7 @@ module.exports = [
         handler: async (req, reply) => {
             try {
                 const mongo = Util.getDb(req);
-                const payload = req.query;
+                const payload = req.payload;
                 if (payload.password) {
                     payload.password = Util.hash(payload.password);
                 }
@@ -124,7 +124,7 @@ module.exports = [
                 }
 
                 // Create Update Info & Update customer
-                const updateInfo = Object.assign('', payload);
+                const updateInfo = Object.assign({}, payload);
                 delete updateInfo.customerId;
                 updateInfo.mdt = Date.now();
 
@@ -189,7 +189,7 @@ module.exports = [
                 options: {
                     allowUnknown: true,
                 },
-                query: {
+                payload: {
                     begin: Joi.number().integer().min(0).optional().description('begin datetime in unix crt'),
                     end: Joi.number().integer().min(0).optional().description('end datetime in unix crt'),
                     ordersId: Joi.string().length(24).optional().description('id orders'),
@@ -203,7 +203,7 @@ module.exports = [
         handler: async (req, reply) => {
             try {
                 const db = Util.getDb(req);
-                const payload = req.query;
+                const payload = req.payload;
                 const options: any = { query: {}, sort: {}, limit: 0 };
 
                 // Loop from key in payload to check query string and assign value to find/sort/limit data
