@@ -16,6 +16,7 @@
     "@sendgrid/mail": "^6.2.1",
     "@types/hapi": "^17.0.7",
     "boom": "^7.2.0",
+    "dotenv": "^5.0.1",
     "hapi": "^17.2.3",
     "hapi-auth-jwt2": "^8.0.1",
     "hapi-auto-route": "^1.1.0",

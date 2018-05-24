@@ -53,6 +53,7 @@ module.exports = [
             validate: {
                 payload: {
                     customerId: Joi.string().length(24).optional().description('id customer'),
+                    no: Joi.string().required().description('order number'),
                     /** 
                      * example 
                      *      Job : [{'name': 'Printing'

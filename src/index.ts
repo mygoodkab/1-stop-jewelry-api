@@ -8,12 +8,16 @@ import * as inert from 'inert';
 import * as path from 'path';
 import * as vision from 'vision';
 import { Util } from './util';
+import * as dotenv from 'dotenv';
+dotenv.config()
+
 export const config = require('./config')[process.env.NODE_ENV || 'dev'];
 const project = require('./../package');
+const protocol = process.env.PROTOCOL  || 'http';
 const swaggerOptions = {
     auth: false,
-    schemes: ['https', 'http'],
-    host: config.hapi.host,
+    schemes: [protocol],
+    host: process.env.HOST || 'localhost:3000',
     info: {
         title: '1 Stop Jewelry API',
         version: project.version,
@@ -31,7 +35,7 @@ const swaggerOptions = {
 
 // create new server instance
 export const server = new Hapi.Server({
-    port: config.hapi.port,
+    port:  process.env.SERVER_PORT || 3000,
     routes: {
         cors: true
     }
