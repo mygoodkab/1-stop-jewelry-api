@@ -1,6 +1,6 @@
 
 import * as pathSep from 'path';
-module.exports = {
+const config = {
     dev: {
         mongodb: {
             url: 'mongodb://admin:123456@ds117540.mlab.com:17540/one-stop-jewelry',
@@ -9,36 +9,42 @@ module.exports = {
                 poolSize: 10,
             },
         },
-        path: {
-            upload: pathSep.join(__dirname, 'upload'),
-            pdf: pathSep.join(__dirname, 'upload', 'document.pdf'),
-        },
         hapi: {
-            host:'api.onestop.codth.com',
-            port: '38111',
+            host: 'api.adoma.codth.com', // 'api.adoma.codth.com' 'localhost:38101',
+            port: '38101',
             router: { routes: 'dist/routes/*.js' }
         },
-        inventory: {
-            status: {
-                IN_STOCK: 'In Stock',
-            },
+        mail: {
+            DOMAIN: `mg.codth.com`,
+            API_KEY: `key-b09165d35576ee942a4158800f0282af`,
         },
-        fileType: {
-            images: [
-                'png',
-                'jpg',
-                'jpeg',
-            ],
-            pdf: ['pdf'],
+    },
+    path: {
+        upload: pathSep.join(__dirname, 'upload'),
+        pdf: pathSep.join(__dirname, 'upload', 'document.pdf'),
+    },
+    inventory: {
+        status: {
+            IN_STOCK: 'In Stock',
         },
-        jwt: {
-            timeout: '8h',
-            refreshInterval: 30 * 60 * 1000 // 30 mins
-        },
-        timezone: {
-            thai: 7 * 60 * 60 * 1000
-        },
-        regex: /[\S]+/,
-        vat: 7  
-    }
+    },
+    fileType: {
+        images: [
+            'png',
+            'jpg',
+            'jpeg',
+        ],
+        pdf: ['pdf'],
+        design: ['3ds', 'iges', 'dxf', 'stl', 'ifc', 'obj', 'dwg', 'ai', 'png', 'jpg', 'jpeg'],
+    },
+    jwt: {
+        timeout: '8h',
+        refreshInterval: 30 * 60 * 1000 // 30 mins
+    },
+    timezone: {
+        thai: 7 * 60 * 60 * 1000
+    },
+    regex: /[\S]+/,
 };
+
+export { config }

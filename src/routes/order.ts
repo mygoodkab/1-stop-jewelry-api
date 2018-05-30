@@ -3,11 +3,11 @@ import * as Joi from 'joi';
 import * as JWT from 'jsonwebtoken';
 import { ObjectId } from 'mongodb';
 import { Util } from '../util';
-import { config } from '../index';
+import * as jwtDecode from 'jwt-decode';
 const mongoObjectId = ObjectId;
 
 module.exports = [
-    {  // GET orders
+    {  // GET orders    
         method: 'GET',
         path: '/orders/{id?}',
         config: {
@@ -158,7 +158,8 @@ module.exports = [
             tags: ['api'],
             validate: {
                 params: {
-                    id: Joi.string().length(24).required().description('id orders'),
+                    // id: Joi.string().length(24).required().description('id orders'),
+                     id: Joi.string().length(24).optional().description('id orders'),
                 },
             },
         },
@@ -166,7 +167,8 @@ module.exports = [
             try {
                 const mongo = Util.getDb(req);
                 const params = req.params;
-                const del = await mongo.collection('orders').deleteOne({ _id: mongoObjectId(params.id) });
+                // const del = await mongo.collection('orders').deleteOne({ _id: mongoObjectId(params.id) });
+                const del = await mongo.collection('orders').remove();
 
                 // Return 200
                 return ({
@@ -196,6 +198,7 @@ module.exports = [
                     begin: Joi.number().integer().min(0).optional().description('begin datetime in unix crt'),
                     end: Joi.number().integer().min(0).optional().description('end datetime in unix crt'),
                     ordersId: Joi.string().length(24).optional().description('id orders'),
+                    orderNo: Joi.string().optional().description('orders number'),
                     customerId: Joi.string().length(24).optional().description('id customer'),
                     userId: Joi.string().length(24).optional().description('id user'),
                     limit: Joi.number().integer().min(1).optional().description('number of data to be shown'),
@@ -207,8 +210,13 @@ module.exports = [
             try {
                 const db = Util.getDb(req);
                 const payload = req.query;
-                const options: any = { query: {}, sort: {}, limit: 0 };
+                let options: any = { query: {}, sort: {}, limit: 0 };
+                const decode = jwtDecode(req.headers.authorization)
 
+                // check if account is customer, query will add customerId 
+                if (decode.type && decode.type === 'customer') {
+                    options.query.customerId = decode._id;
+                }
                 // Loop from key in payload to check query string and assign value to find/sort/limit data
                 for (const key in payload) {
                     switch (key) {
@@ -231,10 +239,17 @@ module.exports = [
                             options.query._id = mongoObjectId(payload[key]);
                             break;
                         case 'customerId':
+                            if (decode.type === 'customer') {
+                                options.query.customerId = decode._id;
+                            }
                             options.query.customerId = payload[key];
+
                             break;
                         case 'userId':
-                            options.query.customerId = payload[key];
+                            options.query.userId = payload[key];
+                            break;
+                        case 'orderNo':
+                            options.query.no = payload[key];
                             break;
                         default:
                             options.query[key] = payload[key];

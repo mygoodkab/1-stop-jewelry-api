@@ -3,7 +3,7 @@ import * as Joi from 'joi';
 import * as JWT from 'jsonwebtoken';
 import { ObjectId } from 'mongodb';
 import { Util } from '../util';
-import { config } from '../index';
+
 const mongoObjectId = ObjectId;
 
 module.exports = [

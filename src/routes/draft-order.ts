@@ -3,11 +3,11 @@ import * as Joi from 'joi';
 import * as JWT from 'jsonwebtoken';
 import { ObjectId } from 'mongodb';
 import { Util } from '../util';
-import { config } from '../index';
+
 const mongoObjectId = ObjectId;
 
 module.exports = [
-    {  // GET latest draftOrder
+    {  // GET latest Order Number
         method: 'GET',
         path: '/draftOrder/latest',
         config: {
@@ -18,30 +18,23 @@ module.exports = [
             try {
                 const mongo = Util.getDb(req);
 
-                const res = await mongo.collection('draftOrder').find().toArray();
+                const res = await mongo.collection('orders').find().toArray();
                 let insert;
                 let orderNo;
                 // if first ORDER
                 if (res.length == 0) {
                     orderNo = "0000001"
-                    insert = await mongo.collection('draftOrder').insertOne({ no: orderNo });
                 } else {
                     // get latest order-draft 
-                    const resLatest = await mongo.collection('draftOrder').find().sort({ ts: -1 }).limit(1).toArray();
+                    const resLatest = await mongo.collection('orders').find().sort({ ts: -1 }).limit(1).toArray();
                     // change string to number to + orderNO.
                     orderNo = Number(resLatest[0].no) + 1;
 
                     // change number to string to + "0"
                     orderNo = orderNo.toString();
-
                     for (let i = orderNo.length; i <= 6; i++) {
                         orderNo = "0" + orderNo
                     }
-                    const payload = {
-                        no: orderNo,
-                        crt: Date.now(),
-                    }
-                    insert = await mongo.collection('draftOrder').insertOne(payload)
 
                 }
 
@@ -50,7 +43,6 @@ module.exports = [
                     message: 'OK',
                     data: {
                         orderNo: orderNo,
-                        draftOrderId: insert.insertedId
                     },
                 };
 
@@ -81,11 +73,7 @@ module.exports = [
                 if (params.id) { find._id = mongoObjectId(params.id); }
 
                 const res = await mongo.collection('draftOrder').find(find).sort({ crt: -1 }).toArray();
-                for (const key in res) {
-                    delete res[key]._id
-                    delete res[key].ts
-                    delete res[key].mdt
-                }
+
                 return {
                     statusCode: 200,
                     message: 'OK',
@@ -109,10 +97,7 @@ module.exports = [
             validate: {
                 payload: {
                     draftOrderId: Joi.string().length(24).required().description('id draftOrderId'),
-                    no: Joi.string().required().description('order number'),
-                    customerId: Joi.string().length(24).optional().description('id customerId'),
-                    job: Joi.array().items(Joi.object()).description('job detail'),
-                    userId: Joi.string().length(24).optional().description('id userId'),
+                    data: Joi.object().description('Job Order')
                 },
             },
         },
@@ -129,20 +114,53 @@ module.exports = [
                 }
 
                 // Create Update Info & Update draftOrder
-                const updateInfo = Object.assign({}, payload);
+                const updateInfo = Object.assign({}, payload.data);
                 delete updateInfo.draftOrderId;
-                updateInfo.mdt = Date.now();
+                // updateInfo.mdt = Date.now();
 
                 const update = await mongo.collection('draftOrder').update({ _id: mongoObjectId(payload.draftOrderId) }, { $set: updateInfo });
-                const payloadLog = Object.assign({}, payload);
-                // Create & Insert draftOrder-Log
-                const writeLog = await Util.writeLog(req, payloadLog, 'draftOrder-log', 'update');
+                const resdrafOrder = await mongo.collection('draftOrder').findOne({ _id: mongoObjectId(payload.draftOrderId) })
 
                 // Return 200
                 return ({
                     massage: 'OK',
                     statusCode: 200,
-                    data: payload,
+                    data: resdrafOrder,
+                });
+
+            } catch (error) {
+                return (Boom.badGateway(error));
+            }
+        },
+
+    },
+    {  // POST draftOrder
+        method: 'POST',
+        path: '/draftOrder',
+        config: {
+            auth: false,
+            description: 'Insert draftOrder order ',
+            notes: 'Insert draftOrder order ',
+            tags: ['api'],
+            validate: {
+                payload: Joi.object().description('order  description'),
+
+            },
+        },
+        handler: async (req, reply) => {
+            try {
+                const mongo = Util.getDb(req);
+                const payload = req.payload;
+
+              //  payload.crt = Date.now();
+              //  payload.active = true;
+
+                const insert = await mongo.collection('draftOrder').insertOne(payload);
+
+                return ({
+                    massage: 'OK',
+                    statusCode: 200,
+                    data: { draftOrderId: insert.insertedId }
                 });
 
             } catch (error) {

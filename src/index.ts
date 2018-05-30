@@ -10,8 +10,8 @@ import * as vision from 'vision';
 import { Util } from './util';
 import * as dotenv from 'dotenv';
 dotenv.config()
-
-export const config = require('./config')[process.env.NODE_ENV || 'dev'];
+import { config } from './config';
+// export const config = require('./config')[process.env.NODE_ENV || 'dev'];
 const project = require('./../package');
 const protocol = process.env.PROTOCOL  || 'http';
 const swaggerOptions = {
@@ -50,11 +50,11 @@ const serverInit = async () => {
             { plugin: inert },
             {
                 plugin: hapiRouter,
-                options: config.hapi.router,
+                options: config.dev.hapi.router,
             },
             {
                 plugin: hapiMongodb,
-                options: config.mongodb
+                options: config.dev.mongodb
             },
             {
                 options: swaggerOptions,

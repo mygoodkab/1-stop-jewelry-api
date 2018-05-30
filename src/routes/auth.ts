@@ -3,7 +3,7 @@ import * as Joi from 'joi';
 import * as JWT from 'jsonwebtoken';
 import { ObjectId } from 'mongodb';
 import * as JWTDecode from 'jwt-decode';
-import { config } from '../index';
+import { config } from '../config';
 import { Util } from '../util';
 
 const mongoObjectId = ObjectId;
@@ -20,8 +20,8 @@ module.exports = [
             tags: ['api'],
             validate: {
                 payload: {
-                    password: Joi.string().min(1).max(100).regex(config.regex).required().description('password'),
                     username: Joi.string().min(1).max(20).regex(config.regex).required(),
+                    password: Joi.string().min(1).max(100).regex(config.regex).required().description('password'),
                 },
             },
         },
@@ -105,8 +105,8 @@ module.exports = [
             tags: ['api'],
             validate: {
                 payload: {
-                    password: Joi.string().min(1).max(100).regex(config.regex).required().description('password'),
                     username: Joi.string().min(1).max(20).regex(config.regex).required(),
+                    password: Joi.string().min(1).max(100).regex(config.regex).required().description('password'),
                 },
             },
         },

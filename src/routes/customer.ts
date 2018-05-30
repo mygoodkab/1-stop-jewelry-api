@@ -3,7 +3,7 @@ import * as Joi from 'joi';
 import * as JWT from 'jsonwebtoken';
 import { ObjectId } from 'mongodb';
 import { Util } from '../util';
-import { config } from '../index';
+import * as jwtDecode from 'jwt-decode';
 const mongoObjectId = ObjectId;
 
 module.exports = [
@@ -69,7 +69,12 @@ module.exports = [
                 payload.crt = Date.now();
                 payload.active = true;
                 payload.password = Util.hash(payload.password);
+                payload.type = 'customer';
 
+                const res = await mongo.collection('customer').findOne({ username: payload.username });
+                if (res) {
+                    return Boom.badRequest('user is exist.')
+                }
                 const insert = await mongo.collection('customer').insertOne(payload);
 
                 // Create & Insert customer-Log
@@ -98,7 +103,7 @@ module.exports = [
             tags: ['api'],
             validate: {
                 payload: {
-                    customerId: Joi.string().length(24).required().description('id taskId'),
+                    customerId: Joi.string().length(24).required().description('id customerId'),
                     fullname: Joi.string().description('customer fristname'),
                     email: Joi.string().description('customer email'),
                     address: Joi.string().description('address'),
@@ -163,6 +168,7 @@ module.exports = [
             try {
                 const mongo = Util.getDb(req);
                 const params = req.params;
+
                 const del = await mongo.collection('customer').deleteOne({ _id: mongoObjectId(params.id) });
 
                 // Return 200
@@ -205,7 +211,12 @@ module.exports = [
                 const db = Util.getDb(req);
                 const payload = req.query;
                 const options: any = { query: {}, sort: {}, limit: 0 };
+                const decode = jwtDecode(req.headers.authorization)
 
+                // check if account is customer, query will add customerId 
+                if (decode.type && decode.type === 'customer') {
+                    options.query.customerId = decode._id;
+                }
                 // Loop from key in payload to check query string and assign value to find/sort/limit data
                 for (const key in payload) {
                     switch (key) {
@@ -228,6 +239,9 @@ module.exports = [
                             options.query._id = payload[key];
                             break;
                         case 'customerId':
+                            if (decode.type === 'customer') {
+                                options.query.customerId = decode._id;
+                            }
                             options.query.customerId = mongoObjectId(payload[key]);
                             break;
                         case 'userId':

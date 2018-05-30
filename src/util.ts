@@ -3,7 +3,7 @@ import { Db } from 'mongodb';
 import * as pathSep from 'path';
 import * as fs from 'fs';
 import * as index from './index';
-
+import { config } from './config';
 export class Util {
 
 	// tslint:disable:indent
@@ -53,7 +53,7 @@ export class Util {
 			toString += '000';
 		}
 		end = Number(toString);
-		if (now < end && (end - now) <= index.config.jwt.refreshInterval) { return true; }
+		if (now < end && (end - now) <= config.jwt.refreshInterval) { return true; }
 		return false;
 	}
 }

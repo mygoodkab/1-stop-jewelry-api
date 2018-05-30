@@ -3,7 +3,7 @@ import * as Joi from 'joi';
 import * as JWT from 'jsonwebtoken';
 import { ObjectId } from 'mongodb';
 import * as JWTDecode from 'jwt-decode';
-import { config } from '../index';
+import { config } from '../config';
 import { Util } from '../util';
 
 const mongoObjectId = ObjectId;
@@ -24,8 +24,8 @@ module.exports = [
                     type: Joi.string().valid(['admin', 'super-admin', 'user']),
                     imageId: Joi.string().length(24).optional().description('id Image'),
                     acl: Joi.array().description('list access control'),
-                    firstname: Joi.string().min(1).max(40).regex(config.regex).required(),
-                    lastname: Joi.string().min(1).max(40).regex(config.regex).required(),
+                    firstname: Joi.string().min(1).max(40).regex(config.regex),
+                    lastname: Joi.string().min(1).max(40).regex(config.regex),
                     address: Joi.string().optional().description('address'),
                     // address: Joi.object({
                     //     no: Joi.string().description('home'),
@@ -47,6 +47,9 @@ module.exports = [
                 const payload = req.payload;
                 payload.password = Util.hash(payload.password);
                 payload.active = true;
+
+                const res = await mongo.collection('staff').findOne({ username: payload.username });
+                if (res) { return Boom.badRequest('user is exist.') }
                 const insert = await mongo.collection('staff').insert(payload);
                 return ({
                     msg: 'OK',
