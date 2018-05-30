@@ -28,7 +28,7 @@ module.exports = [
                 if (params.id === '{id}') { delete params.id; }
                 if (params.id) { find._id = mongoObjectId(params.id); }
 
-                const res = await mongo.collection('customer').find(find).toArray();
+                const res = await mongo.collection('customer').find(find).sort({ crt: -1 }).toArray();
 
                 return {
                     data: res,
@@ -189,7 +189,7 @@ module.exports = [
                 options: {
                     allowUnknown: true,
                 },
-                payload: {
+                query: {
                     begin: Joi.number().integer().min(0).optional().description('begin datetime in unix crt'),
                     end: Joi.number().integer().min(0).optional().description('end datetime in unix crt'),
                     ordersId: Joi.string().length(24).optional().description('id orders'),
@@ -203,7 +203,7 @@ module.exports = [
         handler: async (req, reply) => {
             try {
                 const db = Util.getDb(req);
-                const payload = req.payload;
+                const payload = req.query;
                 const options: any = { query: {}, sort: {}, limit: 0 };
 
                 // Loop from key in payload to check query string and assign value to find/sort/limit data

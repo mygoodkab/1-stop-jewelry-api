@@ -146,7 +146,7 @@ module.exports = [
                 if (params.id === '{id}') { delete params.id; }
                 if (params.id) { find._id = mongoObjectId(params.id); }
 
-                const res = await mongo.collection('staff').find(find).toArray();
+                const res = await mongo.collection('staff').find(find).sort({ crt: -1 }).toArray();
 
                 return ({
                     data: res,

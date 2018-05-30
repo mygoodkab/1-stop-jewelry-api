@@ -28,7 +28,7 @@ module.exports = [
                 if (params.id === '{id}') { delete params.id; }
                 if (params.id) { find._id = mongoObjectId(params.id); }
 
-                const res = await mongo.collection('orders').find(find).toArray();
+                const res = await mongo.collection('orders').find(find).sort({ crt: -1 }).toArray();
 
                 return {
                     data: res,
@@ -46,7 +46,7 @@ module.exports = [
         method: 'POST',
         path: '/orders',
         config: {
-          //  auth: false,
+            //  auth: false,
             description: 'Insert orders ',
             notes: 'Insert orders ',
             tags: ['api'],
@@ -102,7 +102,7 @@ module.exports = [
         method: 'PUT',
         path: '/orders',
         config: {
-           // auth: false,
+            // auth: false,
             description: 'Update orders ',
             notes: 'Update orders ',
             tags: ['api'],
@@ -152,7 +152,7 @@ module.exports = [
         method: 'DELETE',
         path: '/orders/{id}',
         config: {
-          //  auth: false,
+            //  auth: false,
             description: 'delete orders ',
             notes: 'delete orders',
             tags: ['api'],
@@ -185,14 +185,14 @@ module.exports = [
         method: 'GET',
         path: '/orders/filter',
         config: {
-           // auth: false,
+            // auth: false,
             description: 'Get orders',
             tags: ['api'],
             validate: {
                 options: {
                     allowUnknown: true,
                 },
-                payload: {
+                query: {
                     begin: Joi.number().integer().min(0).optional().description('begin datetime in unix crt'),
                     end: Joi.number().integer().min(0).optional().description('end datetime in unix crt'),
                     ordersId: Joi.string().length(24).optional().description('id orders'),
@@ -206,7 +206,7 @@ module.exports = [
         handler: async (req, reply) => {
             try {
                 const db = Util.getDb(req);
-                const payload = req.payload;
+                const payload = req.query;
                 const options: any = { query: {}, sort: {}, limit: 0 };
 
                 // Loop from key in payload to check query string and assign value to find/sort/limit data
@@ -258,7 +258,7 @@ module.exports = [
         method: 'PUT',
         path: '/orders/update-job',
         config: {
-          //  auth: false,
+            //  auth: false,
             description: 'Update orders ',
             notes: 'Update orders ',
             tags: ['api'],
@@ -288,7 +288,7 @@ module.exports = [
                 delete updateInfo.ordersId;
                 updateInfo.mdt = Date.now();
 
-                const update = await mongo.collection('orders').update({ _id: mongoObjectId(payload.ordersId), "job.name": payload.name }, { $set:  { "job.$.status": payload.status }  });
+                const update = await mongo.collection('orders').update({ _id: mongoObjectId(payload.ordersId), "job.name": payload.name }, { $set: { "job.$.status": payload.status } });
 
                 // Create & Insert orders-Log
                 const writeLog = await Util.writeLog(req, payload, 'orders-log', 'update-job');

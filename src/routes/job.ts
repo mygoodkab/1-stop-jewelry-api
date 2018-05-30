@@ -28,7 +28,7 @@ module.exports = [
                 if (params.id === '{id}') { delete params.id; }
                 if (params.id) { find._id = mongoObjectId(params.id); }
 
-                const res = await mongo.collection('job').find(find).toArray();
+                const res = await mongo.collection('job').find(find).sort({ crt: -1 }).toArray();
                 // for (const index in res) {
                 //     for (const key in res[index].field) {
                 //         if (res[index].field[key].choice) {

@@ -39,7 +39,7 @@ module.exports = [
                     }
                     const payload = {
                         no: orderNo,
-                        ts: Date.now(),
+                        crt: Date.now(),
                     }
                     insert = await mongo.collection('draftOrder').insertOne(payload)
 
@@ -80,7 +80,7 @@ module.exports = [
                 if (params.id === '{id}') { delete params.id; }
                 if (params.id) { find._id = mongoObjectId(params.id); }
 
-                const res = await mongo.collection('draftOrder').find(find).toArray();
+                const res = await mongo.collection('draftOrder').find(find).sort({ crt: -1 }).toArray();
                 for (const key in res) {
                     delete res[key]._id
                     delete res[key].ts

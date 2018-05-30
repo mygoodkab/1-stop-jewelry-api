@@ -64,7 +64,7 @@ module.exports = [
 
                 payload.crt = Date.now();
                 payload.active = true;
-
+                payload.type = 'customer';
                 const insert = await mongo.collection('choice').insertOne(payload);
 
                 // Create & Insert choice-Log
