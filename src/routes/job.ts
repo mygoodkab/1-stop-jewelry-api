@@ -11,7 +11,7 @@ module.exports = [
         method: 'GET',
         path: '/job/{id?}',
         config: {
-            auth: false,
+          //  auth: false,
             description: 'Get job',
             tags: ['api'],
             validate: {
@@ -56,7 +56,7 @@ module.exports = [
         method: 'POST',
         path: '/job',
         config: {
-            auth: false,
+          //  auth: false,
             description: 'Insert job ',
             notes: 'Insert job ',
             tags: ['api'],
@@ -106,7 +106,7 @@ module.exports = [
         method: 'PUT',
         path: '/job',
         config: {
-            auth: false,
+           // auth: false,
             description: 'Update job ',
             notes: 'Update job ',
             tags: ['api'],
@@ -165,7 +165,7 @@ module.exports = [
         method: 'DELETE',
         path: '/job/{id}',
         config: {
-            auth: false,
+          //  auth: false,
             description: 'delete job ',
             notes: 'delete job',
             tags: ['api'],

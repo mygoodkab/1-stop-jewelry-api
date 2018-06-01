@@ -45,7 +45,7 @@ module.exports = [
         method: 'POST',
         path: '/choice',
         config: {
-            auth: false,
+           // auth: false,
             description: 'Insert choice ',
             notes: 'Insert choice ',
             tags: ['api'],
@@ -86,7 +86,7 @@ module.exports = [
         method: 'PUT',
         path: '/choice',
         config: {
-            auth: false,
+          //  auth: false,
             description: 'Update choice ',
             notes: 'Update choice ',
             tags: ['api'],
@@ -136,7 +136,7 @@ module.exports = [
         method: 'DELETE',
         path: '/choice/{id}',
         config: {
-            auth: false,
+          //  auth: false,
             description: 'delete choice ',
             notes: 'delete choice',
             tags: ['api'],

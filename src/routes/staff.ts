@@ -13,7 +13,7 @@ module.exports = [
         method: 'POST',
         path: '/staff',
         config: {
-            auth: false,
+          //  auth: false,
             description: 'Insert account data',
             notes: 'Insert account data',
             tags: ['api'],
@@ -65,7 +65,7 @@ module.exports = [
         method: 'PUT',
         path: '/staff',
         config: {
-            auth: false,
+          //  auth: false,
             description: 'Update staff ',
             notes: 'Update staff ',
             tags: ['api'],
@@ -132,6 +132,7 @@ module.exports = [
         method: 'GET',
         path: '/staff/{id?}',
         config: {
+            auth: false,
             description: 'Select all account ',
             notes: 'Select all account ',
             tags: ['api'],
@@ -167,7 +168,7 @@ module.exports = [
         method: 'DELETE',
         path: '/staff/{id}',
         config: {
-            auth: false,
+          //  auth: false,
             description: 'check Master before delete account ',
             notes: 'check Master before delete account',
             tags: ['api'],

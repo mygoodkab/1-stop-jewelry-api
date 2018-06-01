@@ -12,7 +12,7 @@ module.exports = [
         method: 'POST',
         path: '/file/image',
         config: {
-            auth: false,
+          //  auth: false,
             tags: ['api'],
             description: 'Upload file',
             notes: 'Upload file',
@@ -93,7 +93,7 @@ module.exports = [
         method: 'POST',
         path: '/file/design',
         config: {
-            auth: false,
+         //   auth: false,
             tags: ['api'],
             description: 'Upload file design',
             notes: 'Upload file design',

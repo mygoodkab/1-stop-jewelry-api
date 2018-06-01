@@ -24,7 +24,10 @@ module.exports = [
                 const mongo = Util.getDb(req);
                 const params = req.params;
                 const find: any = { active: true, };
-
+                const userProfile = jwtDecode(req.headers.authorization);
+                if (userProfile.type === 'customer') {
+                    find._id = mongoObjectId(userProfile._id);
+                }
                 if (params.id === '{id}') { delete params.id; }
                 if (params.id) { find._id = mongoObjectId(params.id); }
 
@@ -116,10 +119,15 @@ module.exports = [
             try {
                 const mongo = Util.getDb(req);
                 const payload = req.payload;
+                const userProfile = jwtDecode(req.headers.authorization);
+
+                if (userProfile.type === 'customer') {
+                    payload.customerId = userProfile._id
+                }
+
                 if (payload.password) {
                     payload.password = Util.hash(payload.password);
                 }
-
 
                 // Check No Data
                 const res = await mongo.collection('customer').findOne({ _id: mongoObjectId(payload.customerId) });
@@ -150,7 +158,7 @@ module.exports = [
         },
 
     },
-    {  // Delete customer
+    {  // Remove customer
         method: 'DELETE',
         path: '/customer/{id}',
         config: {
@@ -168,7 +176,10 @@ module.exports = [
             try {
                 const mongo = Util.getDb(req);
                 const params = req.params;
-
+                const userProfile = jwtDecode(req.headers.authorization);
+                if (userProfile.type !== 'admin' || userProfile.type !== 'superadmin') {
+                    return Boom.badRequest('Permission Denied!')
+                }
                 const del = await mongo.collection('customer').deleteOne({ _id: mongoObjectId(params.id) });
 
                 // Return 200
@@ -200,7 +211,6 @@ module.exports = [
                     end: Joi.number().integer().min(0).optional().description('end datetime in unix crt'),
                     ordersId: Joi.string().length(24).optional().description('id orders'),
                     customerId: Joi.string().length(24).optional().description('id customer'),
-                    userId: Joi.string().length(24).optional().description('id user'),
                     limit: Joi.number().integer().min(1).optional().description('number of data to be shown'),
                     sort: Joi.number().integer().valid([1, -1]).optional().description('1 for asc & -1 for desc'),
                 },
@@ -210,7 +220,7 @@ module.exports = [
             try {
                 const db = Util.getDb(req);
                 const payload = req.query;
-                const options: any = { query: {}, sort: {}, limit: 0 };
+                const options: any = { query: {}, sort: { crt: -1 }, limit: 0 };
                 const decode = jwtDecode(req.headers.authorization)
 
                 // check if account is customer, query will add customerId 
@@ -243,9 +253,6 @@ module.exports = [
                                 options.query.customerId = decode._id;
                             }
                             options.query.customerId = mongoObjectId(payload[key]);
-                            break;
-                        case 'userId':
-                            options.query.customerId = payload[key];
                             break;
                         default:
                             options.query[key] = payload[key];

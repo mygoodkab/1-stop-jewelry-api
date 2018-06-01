@@ -11,7 +11,7 @@ module.exports = [
         method: 'POST',
         path: '/email/send',
         config: {
-            auth: false,
+          //  auth: false,
             description: 'Sent email',
             notes: 'Sent email',
             tags: ['api'],
