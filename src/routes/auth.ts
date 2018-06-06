@@ -30,8 +30,9 @@ module.exports = [
             const payload = req.payload;
             payload.password = Util.hash(payload.password);
             try {
-                const login = await mongo.collection('staff').findOne({ username: payload.username, password: payload.password, active: true });
+                const login = await mongo.collection('staff').findOne({ username: payload.username, password: payload.password });
                 if (login) {
+                    if (!login.active) { return Boom.badRequest('User is Denied!') }
                     delete login.password;
                     login.ts = Date.now();
                     login.refresh = Util.hash(login);

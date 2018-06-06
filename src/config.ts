@@ -3,7 +3,7 @@ import * as pathSep from 'path';
 const config = {
     dev: {
         mongodb: {
-            url: 'mongodb://admin:123456@ds117540.mlab.com:17540/one-stop-jewelry',
+            url: process.env.MONGO || 'mongodb://admin:admin1234@ds247670.mlab.com:47670/one-stop-jewelry-dev',
             decorate: true,
             settings: {
                 poolSize: 10,

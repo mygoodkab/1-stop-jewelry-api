@@ -12,6 +12,7 @@ const fileUpload = (file: any, location: string, validateType: any[]) => {
     let filename = file.hapi.filename.split('.');
     const fileType = filename.splice(filename.length - 1, 1)[0];
     const storeName = Util.uniqid() + '.' + fileType.toLowerCase();
+    // const storeName = Util.uniqid() + '.' + fileType.toLowerCase();
     filename = filename.join('.');
     // validate file type
     if (validateType.indexOf(fileType.toLowerCase()) <= -1) { throw new Error('Type is NOT allowed'); }
@@ -24,7 +25,7 @@ const fileUpload = (file: any, location: string, validateType: any[]) => {
         ts: new Date(),
     };
 
-    if (fileInfo.fileType.toLowerCase() === 'pdf') { fileInfo.storeName = 'document.pdf'; }
+    // if (fileInfo.fileType.toLowerCase() === 'pdf') { fileInfo.storeName = 'document.pdf'; }
     // path file
     const path = pathSep.join(location, fileInfo.storeName);
 

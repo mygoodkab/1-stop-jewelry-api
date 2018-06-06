@@ -7,7 +7,7 @@ import * as jwtDecode from 'jwt-decode';
 const mongoObjectId = ObjectId;
 
 module.exports = [
-    {  // GET orders    
+    {  // GET orders  for admin  
         method: 'GET',
         path: '/orders/{id?}',
         config: {
@@ -25,12 +25,10 @@ module.exports = [
                 const params = req.params;
                 const userProfile = jwtDecode(req.headers.authorization);
                 const find: any = { active: true, };
-
+                if (userProfile.type === 'customer' || typeof userProfile.access === undefined || !userProfile.access.order.read) { return Boom.badRequest('Access Denied!') }
                 if (params.id === '{id}') { delete params.id; }
                 if (params.id) { find._id = mongoObjectId(params.id); }
-                if (userProfile.type === 'customer') {
-                    find.userId = userProfile._id
-                }
+
                 const res = await mongo.collection('orders').find(find).sort({ crt: -1 }).toArray();
 
                 return {
@@ -45,7 +43,41 @@ module.exports = [
         },
 
     },
-    {  // GET orders filter
+    {  // GET orders    
+        method: 'GET',
+        path: '/orders/onwer/{id?}',
+        config: {
+            // auth: false,
+            description: 'Get orders',
+            tags: ['api'],
+            validate: {
+                params: {
+                    id: Joi.string().optional().description('id orders'),
+                },
+            },
+        }, handler: async (req, reply) => {
+            try {
+                const mongo = Util.getDb(req);
+                const params = req.params;
+                const userProfile = jwtDecode(req.headers.authorization);
+                const find: any = { active: true, userId: userProfile._id };
+                if (params.id === '{id}') { delete params.id }
+                if (params.id) { find._id = mongoObjectId(params.id) }
+                const res = await mongo.collection('orders').find(find).sort({ crt: -1 }).toArray();
+
+                return {
+                    data: res,
+                    message: 'OK',
+                    statusCode: 200,
+                };
+
+            } catch (error) {
+                return (Boom.badGateway(error));
+            }
+        },
+
+    },
+    {  // GET orders filter for admin
         method: 'GET',
         path: '/orders/filter',
         config: {
@@ -72,12 +104,9 @@ module.exports = [
                 const db = Util.getDb(req);
                 const payload = req.query;
                 let options: any = { query: {}, sort: { crt: -1 }, limit: 0 };
-                const decode = jwtDecode(req.headers.authorization)
+                const userProfile = jwtDecode(req.headers.authorization);
+                if (userProfile.type === 'customer' || typeof userProfile.access === undefined || !userProfile.access.order.read) { return Boom.badRequest('Access Denied!') }
 
-                // check if account is customer, query will add userId 
-                if (decode.type && decode.type === 'customer') {
-                    options.query.userId = decode._id;
-                }
                 // Loop from key in payload to check query string and assign value to find/sort/limit data
                 for (const key in payload) {
                     switch (key) {
@@ -98,13 +127,6 @@ module.exports = [
                             break;
                         case 'ordersId':
                             options.query._id = mongoObjectId(payload[key]);
-                            break;
-                        case 'userId':
-                            if (decode.type === 'customer') {
-                                options.query.userId = decode._id;
-                            }
-                            options.query.userId = payload[key];
-
                             break;
                         case 'userId':
                             options.query.userId = payload[key];
@@ -154,11 +176,11 @@ module.exports = [
                 const payload = req.payload;
                 const userProfile = jwtDecode(req.headers.authorization);
                 if (userProfile.type === 'customer' && payload.userId !== userProfile._id) {
-                    return Boom.badRequest('Permission Denied')
+                    return Boom.badRequest('Invaild User')
                 }
                 payload.crt = Date.now();
                 payload.active = true;
-               // payload.status = 'In Process';
+                // payload.status = 'In Process';
 
                 const insert = await mongo.collection('orders').insertOne(payload);
 
@@ -182,7 +204,7 @@ module.exports = [
         },
 
     },
-    {  // PUT orders
+    {  // PUT orders for admin
         method: 'PUT',
         path: '/orders',
         config: {
@@ -192,27 +214,25 @@ module.exports = [
             tags: ['api'],
             validate: {
                 payload: {
-                    ordersId: Joi.string().length(24).required().description('id ordersId'),
                     job: Joi.array().items(Joi.object()).required().description('orders detail'),
                 },
+                query: {
+                    id: Joi.string().length(24).required().description('id ordersId'),
+                }
             },
         },
         handler: async (req, reply) => {
             try {
                 const mongo = Util.getDb(req);
                 const payload = req.payload;
-                const find: any = { _id: mongoObjectId(payload.ordersId) }
+                const query = req.query;
                 const userProfile = jwtDecode(req.headers.authorization);
-
-                if (userProfile.type = 'customer') {
-                    find.userId = userProfile._id
-                }
-
+                if (userProfile.type === 'customer' || typeof userProfile.access === undefined || !userProfile.access.order.update) { return Boom.badRequest('Access Denied!') }
                 // Check No Data
-                const res = await mongo.collection('orders').findOne(find);
+                const res = await mongo.collection('orders').findOne({ _id: mongoObjectId(query.id) });
 
                 if (!res) {
-                    return (Boom.badData(`Can't find ID ${payload.ordersId}`));
+                    return (Boom.badData(`Can't find ID ${query.id}`));
                 }
 
                 // Create Update Info & Update orders
@@ -220,7 +240,54 @@ module.exports = [
                 delete updateInfo.ordersId;
                 updateInfo.mdt = Date.now();
 
-                const update = await mongo.collection('orders').update({ _id: mongoObjectId(payload.ordersId) }, { $set: updateInfo });
+                const update = await mongo.collection('orders').update({ _id: mongoObjectId(query.id) }, { $set: updateInfo });
+
+                // Create & Insert orders-Log
+                const writeLog = await Util.writeLog(req, payload, 'orders-log', 'update');
+
+                // Return 200
+                return ({
+                    massage: 'OK',
+                    statusCode: 200,
+                });
+
+            } catch (error) {
+                return (Boom.badGateway(error));
+            }
+        },
+
+    },
+    {  // PUT orders
+        method: 'PUT',
+        path: '/orders/owner',
+        config: {
+            // auth: false,
+            description: 'Update orders ',
+            notes: 'Update orders ',
+            tags: ['api'],
+            validate: {
+                payload: {
+                    job: Joi.array().items(Joi.object()).required().description('orders detail'),
+                },
+                query: {
+                    id: Joi.string().length(24).required().description('id ordersId'),
+                }
+            },
+        },
+        handler: async (req, reply) => {
+            try {
+                const mongo = Util.getDb(req);
+                const payload = req.payload;
+                const query = req.query;
+                const userProfile = jwtDecode(req.headers.authorization);
+
+
+                // Create Update Info & Update orders
+                const updateInfo = Object.assign({}, payload);
+                delete updateInfo.ordersId;
+                updateInfo.mdt = Date.now();
+
+                const update = await mongo.collection('orders').update({ _id: mongoObjectId(query.id) }, { $set: updateInfo });
 
                 // Create & Insert orders-Log
                 const writeLog = await Util.writeLog(req, payload, 'orders-log', 'update');
@@ -297,9 +364,7 @@ module.exports = [
                 const mongo = Util.getDb(req);
                 const params = req.params;
                 const userProfile = jwtDecode(req.headers.authorization);
-                if (userProfile.type !== 'admin' && userProfile.type !== 'superadmin') {
-                    return Boom.badRequest('Permission Denied')
-                }
+                if (userProfile.type === 'customer' || typeof userProfile.access === undefined || !userProfile.access.order.delete) { return Boom.badRequest('Access Denied!') }
 
                 // const del = await mongo.collection('orders').deleteOne({ _id: mongoObjectId(params.id) });
                 const del = await mongo.collection('orders').remove();
@@ -336,11 +401,9 @@ module.exports = [
                 const mongo = Util.getDb(req);
                 const params = req.params;
                 const userProfile = jwtDecode(req.headers.authorization);
-                if (userProfile.type === 'customer') {
-                    const res = await mongo.collection('orders').findOne({ _id: mongoObjectId(params.id), userId: userProfile._id })
-                    if (!res) {
-                        return Boom.badRequest('Can not find order')
-                    }
+                const res = await mongo.collection('orders').findOne({ _id: mongoObjectId(params.id), userId: userProfile._id })
+                if (!res) {
+                    return Boom.badRequest('Can not find order')
                 }
 
                 const del = await mongo.collection('orders').update({ _id: mongoObjectId(params.id) }, { $set: { active: false } });

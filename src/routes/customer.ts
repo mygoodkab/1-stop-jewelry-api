@@ -7,7 +7,7 @@ import * as jwtDecode from 'jwt-decode';
 const mongoObjectId = ObjectId;
 
 module.exports = [
-    {  // GET customer
+    {  // GET customer for admin 
         method: 'GET',
         path: '/customer/{id?}',
         config: {
@@ -25,13 +25,37 @@ module.exports = [
                 const params = req.params;
                 const find: any = { active: true, };
                 const userProfile = jwtDecode(req.headers.authorization);
-                if (userProfile.type === 'customer') {
-                    find._id = mongoObjectId(userProfile._id);
-                }
+                if (typeof userProfile.access === undefined || !userProfile.access.customer.read) { return Boom.badRequest('Access Denied!') }
                 if (params.id === '{id}') { delete params.id; }
                 if (params.id) { find._id = mongoObjectId(params.id); }
 
                 const res = await mongo.collection('customer').find(find).sort({ crt: -1 }).toArray();
+
+                return {
+                    data: res,
+                    message: 'OK',
+                    statusCode: 200,
+                };
+
+            } catch (error) {
+                return (Boom.badGateway(error));
+            }
+        },
+
+    },
+    {  // GET customer profile
+        method: 'GET',
+        path: '/customer/profile',
+        config: {
+            // auth: false,
+            description: 'Get customer',
+            tags: ['api'],
+        }, handler: async (req, reply) => {
+            try {
+                const mongo = Util.getDb(req);
+                const params = req.params;
+                const userProfile = jwtDecode(req.headers.authorization);
+                const res = await mongo.collection('customer').find({ _id: mongoObjectId(userProfile._id) }).sort({ crt: -1 }).toArray();
 
                 return {
                     data: res,
@@ -96,9 +120,9 @@ module.exports = [
         },
 
     },
-    {  // PUT customer
+    {  // PUT customer for admin
         method: 'PUT',
-        path: '/customer',
+        path: '/customer/{id}',
         config: {
             // auth: false,
             description: 'Update customer ',
@@ -106,12 +130,15 @@ module.exports = [
             tags: ['api'],
             validate: {
                 payload: {
-                    customerId: Joi.string().length(24).required().description('id customerId'),
+                    //  customerId: Joi.string().length(24).required().description('id customerId'),
                     fullname: Joi.string().description('customer fristname'),
                     email: Joi.string().description('customer email'),
                     address: Joi.string().description('address'),
                     tel: Joi.string().description('customer phone number'),
                     password: Joi.string().description('password'),
+                },
+                query: {
+                    id: Joi.string().length(24).required().description('id customerId'),
                 },
             },
         },
@@ -119,18 +146,13 @@ module.exports = [
             try {
                 const mongo = Util.getDb(req);
                 const payload = req.payload;
+                const query = req.query;
                 const userProfile = jwtDecode(req.headers.authorization);
-
-                if (userProfile.type === 'customer') {
-                    payload.customerId = userProfile._id
-                }
-
-                if (payload.password) {
-                    payload.password = Util.hash(payload.password);
-                }
+                if (typeof userProfile.access === undefined || !userProfile.access.customer.update) { return Boom.badRequest('Access Denied!') }
+                if (payload.password) { payload.password = Util.hash(payload.password); }
 
                 // Check No Data
-                const res = await mongo.collection('customer').findOne({ _id: mongoObjectId(payload.customerId) });
+                const res = await mongo.collection('customer').findOne({ _id: mongoObjectId(query.id) });
 
                 if (!res) {
                     return (Boom.badData(`Can't find ID ${payload.customerId}`));
@@ -158,7 +180,54 @@ module.exports = [
         },
 
     },
-    {  // Remove customer
+    {  // PUT customer profile
+        method: 'PUT',
+        path: '/customer/profile',
+        config: {
+            // auth: false,
+            description: 'Update customer ',
+            notes: 'Update customer ',
+            tags: ['api'],
+            validate: {
+                payload: {
+                    fullname: Joi.string().description('customer fristname'),
+                    email: Joi.string().description('customer email'),
+                    address: Joi.string().description('address'),
+                    tel: Joi.string().description('customer phone number'),
+                    password: Joi.string().description('password'),
+                },
+            },
+        },
+        handler: async (req, reply) => {
+            try {
+                const mongo = Util.getDb(req);
+                const payload = req.payload;
+                const userProfile = jwtDecode(req.headers.authorization);
+                if (userProfile.type !== 'customer') { return Boom.badRequest('only for owner') }
+                if (payload.password) { payload.password = Util.hash(payload.password); }
+
+                // Create Update Info & Update customer
+                const updateInfo = Object.assign({}, payload);
+                delete updateInfo.customerId;
+                updateInfo.mdt = Date.now();
+                const update = await mongo.collection('customer').update({ _id: mongoObjectId(userProfile._id) }, { $set: updateInfo });
+
+                // Create & Insert customer-Log
+                const writeLog = await Util.writeLog(req, payload, 'customer-log', 'update');
+
+                // Return 200
+                return ({
+                    massage: 'OK',
+                    statusCode: 200,
+                });
+
+            } catch (error) {
+                return (Boom.badGateway(error));
+            }
+        },
+
+    },
+    {  // Remove customer for admin
         method: 'DELETE',
         path: '/customer/{id}',
         config: {
@@ -177,9 +246,7 @@ module.exports = [
                 const mongo = Util.getDb(req);
                 const params = req.params;
                 const userProfile = jwtDecode(req.headers.authorization);
-                if (userProfile.type !== 'admin' || userProfile.type !== 'superadmin') {
-                    return Boom.badRequest('Permission Denied!')
-                }
+                if (typeof userProfile.access === undefined || !userProfile.access.customer.delete) { return Boom.badRequest('Access Denied!') }
                 const del = await mongo.collection('customer').deleteOne({ _id: mongoObjectId(params.id) });
 
                 // Return 200
@@ -195,7 +262,7 @@ module.exports = [
         },
 
     },
-    {  // GET customer filter
+    {  // GET customer filter for admin
         method: 'GET',
         path: '/customer/filter',
         config: {
@@ -213,6 +280,7 @@ module.exports = [
                     customerId: Joi.string().length(24).optional().description('id customer'),
                     limit: Joi.number().integer().min(1).optional().description('number of data to be shown'),
                     sort: Joi.number().integer().valid([1, -1]).optional().description('1 for asc & -1 for desc'),
+                    name: Joi.string().max(50).optional().description('name user'),
                 },
             },
         },
@@ -221,12 +289,9 @@ module.exports = [
                 const db = Util.getDb(req);
                 const payload = req.query;
                 const options: any = { query: {}, sort: { crt: -1 }, limit: 0 };
-                const decode = jwtDecode(req.headers.authorization)
+                const userProfile = jwtDecode(req.headers.authorization)
+                if (typeof userProfile.access === undefined || !userProfile.access.customer.read) { return Boom.badRequest('Access Denied!') }
 
-                // check if account is customer, query will add customerId 
-                if (decode.type && decode.type === 'customer') {
-                    options.query.customerId = decode._id;
-                }
                 // Loop from key in payload to check query string and assign value to find/sort/limit data
                 for (const key in payload) {
                     switch (key) {
@@ -245,21 +310,20 @@ module.exports = [
                         case 'limit':
                             options.limit = payload;
                             break;
-                        case 'ordersId':
-                            options.query._id = payload[key];
-                            break;
                         case 'customerId':
-                            if (decode.type === 'customer') {
-                                options.query.customerId = decode._id;
-                            }
                             options.query.customerId = mongoObjectId(payload[key]);
+                            break;
+                        // have to do indexing
+                        case 'name':
+                            options.query['$text'] = { $search: payload[key] };
                             break;
                         default:
                             options.query[key] = payload[key];
                             break;
                     }
                 }
-                const ordersLogs = await db.collection('orders').find(options.query).sort(options.sort).limit(options.limit).toArray();
+                console.log(options.query)
+                const ordersLogs = await db.collection('customer').find(options.query).sort(options.sort).limit(options.limit).toArray();
 
                 return {
                     data: ordersLogs,

@@ -54,7 +54,7 @@ const serverInit = async () => {
             },
             {
                 plugin: hapiMongodb,
-                options: config.dev.mongodb
+                options: config.dev.mongodb 
             },
             {
                 options: swaggerOptions,
