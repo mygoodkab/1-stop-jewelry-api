@@ -27,9 +27,9 @@ module.exports = [
                 const userProfile = jwtDecode(req.headers.authorization);
                 if (params.id === '{id}') { delete params.id; }
                 if (params.id) { find._id = mongoObjectId(params.id); }
-                if (userProfile.type === 'customer') {
-                    find.userId = userProfile._id
-                }
+
+                find.userId = userProfile._id
+
                 const res = await mongo.collection('archiveOrder').find(find).sort({ crt: -1 }).toArray();
 
                 return {
@@ -59,8 +59,7 @@ module.exports = [
                     begin: Joi.number().integer().min(0).optional().description('begin datetime in unix crt'),
                     end: Joi.number().integer().min(0).optional().description('end datetime in unix crt'),
                     archiveOrderId: Joi.string().length(24).optional().description('id archiveOrder'),
-                    orderNo: Joi.string().optional().description('archiveOrder number'),
-                    userId: Joi.string().length(24).optional().description('id customer'),
+                    //   orderNo: Joi.string().optional().description('archiveOrder number'),
                     limit: Joi.number().integer().min(1).optional().description('number of data to be shown'),
                     sort: Joi.number().integer().valid([1, -1]).optional().description('1 for asc & -1 for desc'),
                 },
@@ -73,10 +72,8 @@ module.exports = [
                 let options: any = { query: {}, limit: 0 };
                 const decode = jwtDecode(req.headers.authorization)
 
-                // check if account is customer, query will add userId 
-                if (decode.type && decode.type === 'customer') {
-                    options.query.userId = decode._id;
-                }
+                options.query.userId = decode._id;
+
                 // Loop from key in payload to check query string and assign value to find/sort/limit data
                 for (const key in payload) {
                     switch (key) {
@@ -95,18 +92,9 @@ module.exports = [
                         case 'archiveOrderId':
                             options.query._id = mongoObjectId(payload[key]);
                             break;
-                        case 'userId':
-                            if (decode.type === 'customer') {
-                                options.query.userId = decode._id;
-                            }
-                            options.query.userId = payload[key];
-                            break;
-                        case 'userId':
-                            options.query.userId = payload[key];
-                            break;
-                        case 'orderNo':
-                            options.query.no = payload[key];
-                            break;
+                        // case 'orderNo':
+                        //     options.query.no = payload[key];
+                        //     break;
                         default:
                             options.query[key] = payload[key];
                             break;
@@ -127,42 +115,35 @@ module.exports = [
     },
     {  // PUT archiveOrder
         method: 'PUT',
-        path: '/archiveOrder',
+        path: '/archiveOrder/{id?}',
         config: {
             //  auth: false,
             description: 'Update archiveOrder ',
             notes: 'Update archiveOrder ',
             tags: ['api'],
             validate: {
-                payload: {
-                    archiveOrderId: Joi.string().length(24).required().description('id archiveOrderId'),
-                    data: Joi.object().description('Order')
-                },
+                query: {
+                    id: Joi.string().length(24).required().description('id archiveOrderId'),
+                }
             },
         },
         handler: async (req, reply) => {
             try {
                 const mongo = Util.getDb(req);
                 const payload = req.payload;
-                const find: any = { _id: mongoObjectId(payload.archiveOrderId) }
+                const query = req.query;
+                const find: any = { _id: mongoObjectId(query.id) }
                 const userProfile = jwtDecode(req.headers.authorization);
+                find.userId = userProfile._id
 
-                if (userProfile.type = 'customer') {
-                    find.userId = userProfile._id
-                }
                 // Check No Data
                 const res = await mongo.collection('archiveOrder').findOne(find);
 
                 if (!res) {
-                    return (Boom.badData(`Can't find ID ${payload.archiveOrderId}`));
+                    return (Boom.badData(`Can't find ID ${query.id}`));
                 }
 
-                // Create Update Info & Update archiveOrder
-                const updateInfo = Object.assign({}, payload.data);
-                delete updateInfo.archiveOrderId;
-                // updateInfo.mdt = Date.now();
-
-                const update = await mongo.collection('archiveOrder').update({ _id: mongoObjectId(payload.archiveOrderId) }, { $set: { active: false } });
+                const update = await mongo.collection('archiveOrder').update({ _id: mongoObjectId(query.id) }, { $set: { active: false } });
 
                 // Return 200
                 return ({
@@ -243,45 +224,45 @@ module.exports = [
         },
 
     },
-    {  // Delete archiveOrder
-        method: 'DELETE',
-        path: '/archiveOrder/{id}',
-        config: {
-            //  auth: false,
-            description: 'delete archiveOrder ',
-            notes: 'delete archiveOrder',
-            tags: ['api'],
-            validate: {
-                params: {
-                    id: Joi.string().length(24).required().description('order id')
-                }
-            }
-        },
-        handler: async (req, reply) => {
-            try {
-                const mongo = Util.getDb(req);
-                const params = req.params;
-                const userProfile = jwtDecode(req.headers.authorization);
-                if (userProfile.type === 'customer') {
-                    const res = await mongo.collection('archiveOrder').findOne({ _id: mongoObjectId(params.id), userId: userProfile._id })
-                    if (!res) {
-                        return Boom.badRequest('Can not find order')
-                    }
-                }
+    // {  // Delete archiveOrder
+    //     method: 'DELETE',
+    //     path: '/archiveOrder/{id}',
+    //     config: {
+    //         //  auth: false,
+    //         description: 'delete archiveOrder ',
+    //         notes: 'delete archiveOrder',
+    //         tags: ['api'],
+    //         validate: {
+    //             params: {
+    //                 id: Joi.string().length(24).required().description('order id')
+    //             }
+    //         }
+    //     },
+    //     handler: async (req, reply) => {
+    //         try {
+    //             const mongo = Util.getDb(req);
+    //             const params = req.params;
+    //             const userProfile = jwtDecode(req.headers.authorization);
+    //             if (userProfile.type === 'customer') {
+    //                 const res = await mongo.collection('archiveOrder').findOne({ _id: mongoObjectId(params.id), userId: userProfile._id })
+    //                 if (!res) {
+    //                     return Boom.badRequest('Can not find order')
+    //                 }
+    //             }
 
-                const del = await mongo.collection('archiveOrder').update({ _id: mongoObjectId(params.id) }, { $set: { active: false } });
+    //             const del = await mongo.collection('archiveOrder').update({ _id: mongoObjectId(params.id) }, { $set: { active: false } });
 
-                // Return 200
-                return ({
-                    massage: 'OK',
-                    statusCode: 200,
-                });
+    //             // Return 200
+    //             return ({
+    //                 massage: 'OK',
+    //                 statusCode: 200,
+    //             });
 
-            } catch (error) {
-                return (Boom.badGateway(error));
-            }
+    //         } catch (error) {
+    //             return (Boom.badGateway(error));
+    //         }
 
-        },
+    //     },
 
-    },
+    // },
 ];

@@ -44,7 +44,11 @@ module.exports = [
                         statusCode: 200,
                     });
                 } else {
-                    return (Boom.notFound('Invaild username or password'));
+                    // return {
+                    //     message: 'Invaild username or password',
+                    //     statusCode: 403,
+                    // }
+                    return (Boom.unauthorized('Invaild username or password'));
                 }
             } catch (error) {
                 return (Boom.badGateway(error));
@@ -123,13 +127,17 @@ module.exports = [
                     login.refresh = Util.hash(login);
                     const token = JWT.sign(login, Util.jwtKey(), { expiresIn: config.jwt.timeout });
                     const insert = await mongo.collection('token').insertOne({ token, refresh: login.refresh, method: 'login' });
-                    return ({
+                    return {
                         data: token,
                         message: 'Login success',
                         statusCode: 200,
-                    });
+                    };
                 } else {
-                    return (Boom.notFound('Invaild username or password'));
+                    // return {
+                    //     message: 'Invaild username or password',
+                    //     statusCode: 403,
+                    // }
+                    return (Boom.unauthorized('Invaild username or password'));
                 }
             } catch (error) {
                 return (Boom.badGateway(error));

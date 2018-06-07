@@ -352,7 +352,7 @@ module.exports = [
     },
     {  // Remove orders
         method: 'DELETE',
-        path: '/orders/remove',
+        path: '/orders/removeAll',
         config: {
             //  auth: false,
             description: 'delete orders ',
@@ -385,6 +385,46 @@ module.exports = [
     {  // Delete orders
         method: 'DELETE',
         path: '/orders/{id}',
+        config: {
+            //  auth: false,
+            description: 'delete orders ',
+            notes: 'delete orders',
+            tags: ['api'],
+            validate: {
+                params: {
+                    id: Joi.string().length(24).required().description('order id')
+                }
+            }
+        },
+        handler: async (req, reply) => {
+            try {
+                const mongo = Util.getDb(req);
+                const params = req.params;
+                const userProfile = jwtDecode(req.headers.authorization);
+                if (userProfile.type === 'customer' || typeof userProfile.access === undefined || !userProfile.access.order.delete) { return Boom.badRequest('Access Denied!') }
+                const res = await mongo.collection('orders').findOne({ _id: mongoObjectId(params.id)})
+                if (!res) {
+                    return Boom.badRequest('Can not find order')
+                }
+
+                const del = await mongo.collection('orders').update({ _id: mongoObjectId(params.id) }, { $set: { active: false } });
+
+                // Return 200
+                return ({
+                    massage: 'OK',
+                    statusCode: 200,
+                });
+
+            } catch (error) {
+                return (Boom.badGateway(error));
+            }
+
+        },
+
+    },
+    {  // Delete orders
+        method: 'DELETE',
+        path: '/orders/owner/{id}',
         config: {
             //  auth: false,
             description: 'delete orders ',

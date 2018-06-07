@@ -13,7 +13,7 @@ dotenv.config()
 import { config } from './config';
 // export const config = require('./config')[process.env.NODE_ENV || 'dev'];
 const project = require('./../package');
-const protocol = process.env.PROTOCOL  || 'http';
+const protocol = process.env.PROTOCOL || 'http';
 const swaggerOptions = {
     auth: false,
     schemes: [protocol],
@@ -35,11 +35,19 @@ const swaggerOptions = {
 
 // create new server instance
 export const server = new Hapi.Server({
-    port:  process.env.SERVER_PORT || 3000,
+    port: process.env.SERVER_PORT || 3000,
     routes: {
         cors: true
     }
 });
+
+const mongodb ={
+        url: process.env.MONGO || 'mongodb://admin:admin1234@ds247670.mlab.com:47670/one-stop-jewelry-dev',
+        decorate: true,
+        settings: {
+            poolSize: 10,
+        },
+    }
 
 // register plugins, wrapped in async/await
 const serverInit = async () => {
@@ -54,7 +62,7 @@ const serverInit = async () => {
             },
             {
                 plugin: hapiMongodb,
-                options: config.dev.mongodb 
+                options: mongodb
             },
             {
                 options: swaggerOptions,
