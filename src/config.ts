@@ -47,4 +47,4 @@ const config = {
     regex: /[\S]+/,
 };
 
-export { config }
+export { config };

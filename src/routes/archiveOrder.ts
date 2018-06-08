@@ -28,7 +28,7 @@ module.exports = [
                 if (params.id === '{id}') { delete params.id; }
                 if (params.id) { find._id = mongoObjectId(params.id); }
 
-                find.userId = userProfile._id
+                find.userId = userProfile._id;
 
                 const res = await mongo.collection('archiveOrder').find(find).sort({ crt: -1 }).toArray();
 
@@ -69,8 +69,8 @@ module.exports = [
             try {
                 const db = Util.getDb(req);
                 const payload = req.query;
-                let options: any = { query: {}, limit: 0 };
-                const decode = jwtDecode(req.headers.authorization)
+                const options: any = { query: {}, limit: 0 };
+                const decode = jwtDecode(req.headers.authorization);
 
                 options.query.userId = decode._id;
 
@@ -132,9 +132,9 @@ module.exports = [
                 const mongo = Util.getDb(req);
                 const payload = req.payload;
                 const query = req.query;
-                const find: any = { _id: mongoObjectId(query.id) }
+                const find: any = { _id: mongoObjectId(query.id) };
                 const userProfile = jwtDecode(req.headers.authorization);
-                find.userId = userProfile._id
+                find.userId = userProfile._id;
 
                 // Check No Data
                 const res = await mongo.collection('archiveOrder').findOne(find);
@@ -175,8 +175,8 @@ module.exports = [
             try {
                 const mongo = Util.getDb(req);
                 const payload = req.payload;
-                const userProfile = jwtDecode(req.headers.authorization)
-                payload.userId = userProfile._id
+                const userProfile = jwtDecode(req.headers.authorization);
+                payload.userId = userProfile._id;
                 payload.crt = Date.now();
                 payload.active = true;
 
@@ -209,7 +209,7 @@ module.exports = [
                 const del = await mongo.collection('archiveOrder').remove();
                 const userProfile = jwtDecode(req.headers.authorization);
                 if (userProfile.type !== 'admin' && userProfile.type !== 'superadmin') {
-                    return Boom.badRequest('Permission Denied')
+                    return Boom.badRequest('Permission Denied');
                 }
                 // Return 200
                 return ({

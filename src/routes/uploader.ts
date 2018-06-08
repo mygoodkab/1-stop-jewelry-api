@@ -109,10 +109,10 @@ module.exports = [
         handler: async (request, reply) => {
             const mongo = Util.getDb(request);
             try {
-                const params = request.params
-                const find: any = {}
-                if (params.id === '{id}') { delete params.id }
-                if (params.id) { find._id = mongoObjectId(params.id) }
+                const params = request.params;
+                const find: any = {};
+                if (params.id === '{id}') { delete params.id; }
+                if (params.id) { find._id = mongoObjectId(params.id); }
                 const resUpload = await mongo.collection('images').find(find).toArray();
 
                 if (!resUpload) {
@@ -123,7 +123,7 @@ module.exports = [
                         statusCode: 200,
                         message: 'OK',
                         data: resUpload,
-                    }
+                    };
                 }
             } catch (error) {
                 reply(Boom.badGateway(error));
@@ -196,13 +196,13 @@ module.exports = [
         handler: async (request, reply) => {
             const mongo = Util.getDb(request);
             try {
-                const resfile = await mongo.collection('design').findOne({ _id: mongoObjectId(request.params.id) })
+                const resfile = await mongo.collection('design').findOne({ _id: mongoObjectId(request.params.id) });
                 if (!resfile) {
-                    return Boom.badRequest('can not find file!')
+                    return Boom.badRequest('can not find file!');
                 }
 
                 return reply.file(pathSep.join(config.path.upload, resfile.storeName))
-                    .header(`Content-Disposition`, `attachment; filename=${resfile.orignalName}.${resfile.fileType}`)
+                    .header(`Content-Disposition`, `attachment; filename=${resfile.orignalName}.${resfile.fileType}`);
             } catch (error) {
                 reply(Boom.badGateway(error));
             }
@@ -225,10 +225,10 @@ module.exports = [
         handler: async (request, reply) => {
             const mongo = Util.getDb(request);
             try {
-                const params = request.params
-                const find: any = {}
-                if (params.id === '{id}') { delete params.id }
-                if (params.id) { find._id = mongoObjectId(params.id) }
+                const params = request.params;
+                const find: any = {};
+                if (params.id === '{id}') { delete params.id; }
+                if (params.id) { find._id = mongoObjectId(params.id); }
                 const resUpload = await mongo.collection('design').find(find).toArray();
 
                 if (!resUpload) {
@@ -239,7 +239,7 @@ module.exports = [
                         statusCode: 200,
                         message: 'OK',
                         data: resUpload,
-                    }
+                    };
                 }
             } catch (error) {
                 reply(Boom.badGateway(error));
@@ -265,15 +265,15 @@ module.exports = [
                 const mongo = Util.getDb(req);
                 const params = req.params;
                 const userProfile = jwtDecode(req.headers.authorization);
-                const find: any = { _id: mongoObjectId(params.id) }
+                const find: any = { _id: mongoObjectId(params.id) };
                 if (userProfile.type === 'customer') {
-                    find.userId = userProfile._id
+                    find.userId = userProfile._id;
                 }
 
                 const res = await mongo.collection('images').findOne(find);
 
                 if (!res) {
-                    return Boom.badRequest('can not find file!')
+                    return Boom.badRequest('can not find file!');
                 }
 
                 if (Util.unlinkFile(pathSep.join(config.path.upload, res.storeName))) {
@@ -313,15 +313,15 @@ module.exports = [
                 const mongo = Util.getDb(req);
                 const params = req.params;
                 const userProfile = jwtDecode(req.headers.authorization);
-                const find: any = { _id: mongoObjectId(params.id) }
+                const find: any = { _id: mongoObjectId(params.id) };
                 if (userProfile.type === 'customer') {
-                    find.userId = userProfile._id
+                    find.userId = userProfile._id;
                 }
 
                 const res = await mongo.collection('design').findOne(find);
 
                 if (!res) {
-                    return Boom.badRequest('can not find file!')
+                    return Boom.badRequest('can not find file!');
                 }
 
                 if (Util.unlinkFile(pathSep.join(config.path.upload, res.storeName))) {

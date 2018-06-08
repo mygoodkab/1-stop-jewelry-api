@@ -27,7 +27,7 @@ module.exports = [
                 } else {
                     res[0].draftOrderId = res[0]._id;
                     delete res[0]._id;
-                    delete res[0].crt; 
+                    delete res[0].crt;
                 }
 
                 return {
@@ -64,15 +64,15 @@ module.exports = [
                 const userProfile = jwtDecode(req.headers.authorization);
 
                 if (userProfile.type === 'customer') {
-                    find.userId = userProfile._id
+                    find.userId = userProfile._id;
                 }
 
                 const res = await mongo.collection('draftOrder').find(find).sort({ crt: -1 }).toArray();
                 for (const key in res) {
                     res[key].draftOrderId = res[key]._id;
-                    delete res[key]._id
-                    delete res[key].crt
-                    delete res[key].active
+                    delete res[key]._id;
+                    delete res[key].crt;
+                    delete res[key].active;
                 }
 
                 return {
@@ -113,8 +113,8 @@ module.exports = [
 
                 // check access
                 if (userProfile.type === 'customer') {
-                    if (payload.userId != userProfile._id) {
-                        return Boom.badRequest('Access Denied')
+                    if (payload.userId !== userProfile._id) {
+                        return Boom.badRequest('Access Denied');
                     }
                 }
 
@@ -177,8 +177,8 @@ module.exports = [
                 const mongo = Util.getDb(req);
                 const payload = req.payload;
                 // get profile from token
-                const userProfile = jwtDecode(req.headers.authorization)
-                payload.userId = userProfile._id
+                const userProfile = jwtDecode(req.headers.authorization);
+                payload.userId = userProfile._id;
                 payload.crt = Date.now();
                 payload.active = true;
 
@@ -212,10 +212,10 @@ module.exports = [
         handler: async (req, reply) => {
             try {
                 const mongo = Util.getDb(req);
-                const userProfile = jwtDecode(req.headers.authorization)
+                const userProfile = jwtDecode(req.headers.authorization);
                 // check permission
                 if (userProfile.type !== 'admin' && userProfile.type !== 'superadmin') {
-                    return Boom.badRequest('Permission Denied')
+                    return Boom.badRequest('Permission Denied');
                 }
                 const del = await mongo.collection('draftOrder').remove();
                 // Return 200

@@ -37,14 +37,12 @@ module.exports = [
                 if (!resOrder) {
                     return Boom.badRequest(`Invaild Order number`);
                 }
-                
-
                 const mailOption = {
                     from: `no-reply<no-reply@mg.codth.com>`, // sender address
                     to: `${resCustomer.email}`, // adoma@adoma-jewel-manufact.com
                     subject: `One  Stop Jewelry`, // Subject line
                     html: `Link : ${payload.link}` // html body
-                }
+                };
 
                 const sendmail = await mail(mailOption);
                 const insert = await mongo.collection('mail-send').insertOne(payload);

@@ -11,7 +11,7 @@ import * as jwtDecode from 'jwt-decode';
 const mongoObjectId = ObjectId;
 
 module.exports = [
-    {  // GET all staff 
+    {  // GET all staff
         method: 'GET',
         path: '/staff/{id?}',
         config: {
@@ -31,9 +31,9 @@ module.exports = [
                 const find: any = { active: true, };
                 const userprofile = jwtDecode(req.headers.authorization);
 
-                //check acces control
+                // check acces control
                 if (typeof userprofile.access === 'undefined' || !userprofile.access.staff.read) {
-                    return Boom.badRequest('Access Denied')
+                    return Boom.badRequest('Access Denied');
                 }
 
                 if (params.id === '{id}') { delete params.id; }
@@ -64,13 +64,13 @@ module.exports = [
         }, handler: async (req, reply) => {
             try {
                 const userprofile = jwtDecode(req.headers.authorization);
-                //check acces control
+                // check acces control
                 if (typeof userprofile.access === undefined || !userprofile.access.staff.create) {
-                    return Boom.badRequest('Access Denied')
+                    return Boom.badRequest('Access Denied');
                 }
 
                 return ({
-                    access: access,
+                    access,
                     msg: 'OK',
                     statusCode: 200,
                 });
@@ -108,7 +108,7 @@ module.exports = [
         },
 
     },
-    {  // POST staff 
+    {  // POST staff
         method: 'POST',
         path: '/staff',
         config: {
@@ -147,9 +147,9 @@ module.exports = [
                 const payload = req.payload;
                 const userprofile = jwtDecode(req.headers.authorization);
 
-                //check acces control
+                // check acces control
                 if (typeof userprofile.access === 'undefined' || !userprofile.access.staff.create) {
-                    return Boom.badRequest('Access Denied')
+                    return Boom.badRequest('Access Denied');
                 }
 
                 payload.password = Util.hash(payload.password);
@@ -157,7 +157,7 @@ module.exports = [
 
                 // check exist user
                 const res = await mongo.collection('staff').findOne({ username: payload.username });
-                if (res) { return Boom.badRequest('user is exist.') }
+                if (res) { return Boom.badRequest('user is exist.'); }
 
                 const insert = await mongo.collection('staff').insert(payload);
                 return ({
@@ -200,7 +200,7 @@ module.exports = [
                     mobile: Joi.string().min(1).max(12).regex(config.regex),
                     email: Joi.string().email(),
                 },
-                query:{
+                query: {
                     id: Joi.string().length(24).required().description('id staff').required(),
                 },
             },
@@ -212,9 +212,9 @@ module.exports = [
                 const query = req.query;
                 const userprofile = jwtDecode(req.headers.authorization);
 
-                //check acces control
+                // check acces control
                 if (typeof userprofile.access === 'undefined' || !userprofile.access.staff.update) {
-                    return Boom.badRequest('Access Denied')
+                    return Boom.badRequest('Access Denied');
                 }
                 if (payload.password) { payload.password = Util.hash(payload.password); }
                 // Check No Data
@@ -283,7 +283,7 @@ module.exports = [
                 const mongo = Util.getDb(req);
                 const payload = req.payload;
                 const userprofile = jwtDecode(req.headers.authorization);
-                                 
+
                 if (payload.password) { payload.password = Util.hash(payload.password); }
                 // Create Update Info & Update staff
                 const updateInfo = Object.assign({}, payload);
@@ -325,9 +325,9 @@ module.exports = [
                 const params = req.params;
                 const userprofile = jwtDecode(req.headers.authorization);
 
-                //check acces control
+                // check acces control
                 if (typeof userprofile.access === 'undefined' || !userprofile.access.staff.delete) {
-                    return Boom.badRequest('Access Denied')
+                    return Boom.badRequest('Access Denied');
                 }
 
                 const del = await mongo.collection('staff').update({ _id: mongoObjectId(params.id) }, { $set: { active: false } });
@@ -365,9 +365,9 @@ module.exports = [
                 const params = req.params;
                 const userprofile = jwtDecode(req.headers.authorization);
 
-                //check acces control
+                // check acces control
                 if (typeof userprofile.access === 'undefined' || !userprofile.access.staff.delete) {
-                    return Boom.badRequest('Access Denied')
+                    return Boom.badRequest('Access Denied');
                 }
 
                 const del = await mongo.collection('staff').deleteOne({ _id: mongoObjectId(params.id) });

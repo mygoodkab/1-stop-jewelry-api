@@ -9,7 +9,7 @@ import * as path from 'path';
 import * as vision from 'vision';
 import { Util } from './util';
 import * as dotenv from 'dotenv';
-dotenv.config()
+dotenv.config();
 import { config } from './config';
 // export const config = require('./config')[process.env.NODE_ENV || 'dev'];
 const project = require('./../package');
@@ -41,13 +41,13 @@ export const server = new Hapi.Server({
     }
 });
 
-const mongodb ={
-        url: process.env.MONGO || 'mongodb://admin:admin1234@ds247670.mlab.com:47670/one-stop-jewelry-dev',
-        decorate: true,
-        settings: {
-            poolSize: 10,
-        },
-    }
+const mongodb = {
+    url: process.env.MONGO || 'mongodb://admin:admin1234@ds247670.mlab.com:47670/one-stop-jewelry-dev',
+    decorate: true,
+    settings: {
+        poolSize: 10,
+    },
+};
 
 // register plugins, wrapped in async/await
 const serverInit = async () => {

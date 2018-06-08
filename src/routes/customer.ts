@@ -25,7 +25,7 @@ module.exports = [
                 const params = req.params;
                 const find: any = { active: true, };
                 const userProfile = jwtDecode(req.headers.authorization);
-                if (typeof userProfile.access === undefined || !userProfile.access.customer.read) { return Boom.badRequest('Access Denied!') }
+                if (typeof userProfile.access === undefined || !userProfile.access.customer.read) { return Boom.badRequest('Access Denied!'); }
                 if (params.id === '{id}') { delete params.id; }
                 if (params.id) { find._id = mongoObjectId(params.id); }
 
@@ -100,7 +100,7 @@ module.exports = [
 
                 const res = await mongo.collection('customer').findOne({ username: payload.username });
                 if (res) {
-                    return Boom.badRequest('user is exist.')
+                    return Boom.badRequest('user is exist.');
                 }
                 const insert = await mongo.collection('customer').insertOne(payload);
 
@@ -148,7 +148,7 @@ module.exports = [
                 const payload = req.payload;
                 const query = req.query;
                 const userProfile = jwtDecode(req.headers.authorization);
-                if (typeof userProfile.access === undefined || !userProfile.access.customer.update) { return Boom.badRequest('Access Denied!') }
+                if (typeof userProfile.access === undefined || !userProfile.access.customer.update) { return Boom.badRequest('Access Denied!'); }
                 if (payload.password) { payload.password = Util.hash(payload.password); }
 
                 // Check No Data
@@ -203,7 +203,7 @@ module.exports = [
                 const mongo = Util.getDb(req);
                 const payload = req.payload;
                 const userProfile = jwtDecode(req.headers.authorization);
-                if (userProfile.type !== 'customer') { return Boom.badRequest('only for owner') }
+                if (userProfile.type !== 'customer') { return Boom.badRequest('only for owner'); }
                 if (payload.password) { payload.password = Util.hash(payload.password); }
 
                 // Create Update Info & Update customer
@@ -246,7 +246,7 @@ module.exports = [
                 const mongo = Util.getDb(req);
                 const params = req.params;
                 const userProfile = jwtDecode(req.headers.authorization);
-                if (typeof userProfile.access === undefined || !userProfile.access.customer.delete) { return Boom.badRequest('Access Denied!') }
+                if (typeof userProfile.access === undefined || !userProfile.access.customer.delete) { return Boom.badRequest('Access Denied!'); }
                 const del = await mongo.collection('customer').deleteOne({ _id: mongoObjectId(params.id) });
 
                 // Return 200
@@ -289,8 +289,8 @@ module.exports = [
                 const db = Util.getDb(req);
                 const payload = req.query;
                 const options: any = { query: {}, sort: { crt: -1 }, limit: 0 };
-                const userProfile = jwtDecode(req.headers.authorization)
-                if (typeof userProfile.access === undefined || !userProfile.access.customer.read) { return Boom.badRequest('Access Denied!') }
+                const userProfile = jwtDecode(req.headers.authorization);
+                if (typeof userProfile.access === undefined || !userProfile.access.customer.read) { return Boom.badRequest('Access Denied!'); }
 
                 // Loop from key in payload to check query string and assign value to find/sort/limit data
                 for (const key in payload) {
@@ -322,7 +322,6 @@ module.exports = [
                             break;
                     }
                 }
-                console.log(options.query)
                 const ordersLogs = await db.collection('customer').find(options.query).sort(options.sort).limit(options.limit).toArray();
 
                 return {
