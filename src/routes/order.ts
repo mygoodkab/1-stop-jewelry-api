@@ -25,7 +25,7 @@ module.exports = [
                 const params = req.params;
                 const userProfile = jwtDecode(req.headers.authorization);
                 const find: any = { active: true, };
-                if (userProfile.type === 'customer' || typeof userProfile.access === undefined || !userProfile.access.order.read) { return Boom.badRequest('Access Denied!'); }
+                if (typeof userProfile.access === 'undefined' || !userProfile.access.order.read) { return Boom.badRequest('Access Denied!'); }
                 if (params.id === '{id}') { delete params.id; }
                 if (params.id) { find._id = mongoObjectId(params.id); }
 
@@ -105,14 +105,14 @@ module.exports = [
                 const payload = req.query;
                 const options: any = { query: {}, sort: { crt: -1 }, limit: 0 };
                 const userProfile = jwtDecode(req.headers.authorization);
-                if (userProfile.type === 'customer' || typeof userProfile.access === undefined || !userProfile.access.order.read) { return Boom.badRequest('Access Denied!'); }
+                if (userProfile.type === 'customer' || typeof userProfile.access === 'undefined' || !userProfile.access.order.read) { return Boom.badRequest('Access Denied!'); }
 
                 // Loop from key in payload to check query string and assign value to find/sort/limit data
                 for (const key in payload) {
                     switch (key) {
                         case 'begin':
                         case 'end':
-                            if (options.query.crt === undefined) {
+                            if (options.query.crt === 'undefined') {
                                 options.query.crt = {};
                             }
                             key === 'begin'
@@ -227,7 +227,7 @@ module.exports = [
                 const payload = req.payload;
                 const query = req.query;
                 const userProfile = jwtDecode(req.headers.authorization);
-                if (userProfile.type === 'customer' || typeof userProfile.access === undefined || !userProfile.access.order.update) { return Boom.badRequest('Access Denied!'); }
+                if (userProfile.type === 'customer' || typeof userProfile.access === 'undefined' || !userProfile.access.order.update) { return Boom.badRequest('Access Denied!'); }
                 // Check No Data
                 const res = await mongo.collection('orders').findOne({ _id: mongoObjectId(query.id) });
 
@@ -362,7 +362,7 @@ module.exports = [
                 const mongo = Util.getDb(req);
                 const params = req.params;
                 const userProfile = jwtDecode(req.headers.authorization);
-                if (userProfile.type === 'customer' || typeof userProfile.access === undefined || !userProfile.access.order.delete) { return Boom.badRequest('Access Denied!'); }
+                if (userProfile.type === 'customer' || typeof userProfile.access === 'undefined' || !userProfile.access.order.delete) { return Boom.badRequest('Access Denied!'); }
 
                 // const del = await mongo.collection('orders').deleteOne({ _id: mongoObjectId(params.id) });
                 const del = await mongo.collection('orders').remove();
@@ -399,7 +399,7 @@ module.exports = [
                 const mongo = Util.getDb(req);
                 const params = req.params;
                 const userProfile = jwtDecode(req.headers.authorization);
-                if (userProfile.type === 'customer' || typeof userProfile.access === undefined || !userProfile.access.order.delete) { return Boom.badRequest('Access Denied!'); }
+                if (userProfile.type === 'customer' || typeof userProfile.access === 'undefined' || !userProfile.access.order.delete) { return Boom.badRequest('Access Denied!'); }
                 const res = await mongo.collection('orders').findOne({ _id: mongoObjectId(params.id) });
                 if (!res) {
                     return Boom.badRequest('Can not find order');

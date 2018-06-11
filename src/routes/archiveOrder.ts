@@ -79,7 +79,7 @@ module.exports = [
                     switch (key) {
                         case 'begin':
                         case 'end':
-                            if (options.query.crt === undefined) {
+                            if (options.query.crt === 'undefined') {
                                 options.query.crt = {};
                             }
                             key === 'begin'

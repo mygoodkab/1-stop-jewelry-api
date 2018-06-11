@@ -32,7 +32,7 @@ module.exports = [
                 const userprofile = jwtDecode(req.headers.authorization);
 
                 // check acces control
-                if (typeof userprofile.access === 'undefined' || !userprofile.access.staff.read) {
+                if (typeof userprofile.access === undefined || typeof userprofile.access.staff === undefined || !userprofile.access.staff.read) {
                     return Boom.badRequest('Access Denied');
                 }
 
@@ -65,7 +65,7 @@ module.exports = [
             try {
                 const userprofile = jwtDecode(req.headers.authorization);
                 // check acces control
-                if (typeof userprofile.access === undefined || !userprofile.access.staff.create) {
+                if (typeof userprofile.access === undefined || typeof userprofile.access.staff === undefined || !userprofile.access.staff.create) {
                     return Boom.badRequest('Access Denied');
                 }
 
@@ -148,7 +148,7 @@ module.exports = [
                 const userprofile = jwtDecode(req.headers.authorization);
 
                 // check acces control
-                if (typeof userprofile.access === 'undefined' || !userprofile.access.staff.create) {
+                if (typeof userprofile.access === 'undefined' || typeof userprofile.access.staff === undefined || !userprofile.access.staff.create) {
                     return Boom.badRequest('Access Denied');
                 }
 
@@ -213,7 +213,7 @@ module.exports = [
                 const userprofile = jwtDecode(req.headers.authorization);
 
                 // check acces control
-                if (typeof userprofile.access === 'undefined' || !userprofile.access.staff.update) {
+                if (typeof userprofile.access === 'undefined' || typeof userprofile.access.staff === undefined || !userprofile.access.staff.update) {
                     return Boom.badRequest('Access Denied');
                 }
                 if (payload.password) { payload.password = Util.hash(payload.password); }
@@ -326,7 +326,7 @@ module.exports = [
                 const userprofile = jwtDecode(req.headers.authorization);
 
                 // check acces control
-                if (typeof userprofile.access === 'undefined' || !userprofile.access.staff.delete) {
+                if (typeof userprofile.access === 'undefined' || typeof userprofile.access.staff === undefined || !userprofile.access.staff.delete) {
                     return Boom.badRequest('Access Denied');
                 }
 
@@ -366,7 +366,7 @@ module.exports = [
                 const userprofile = jwtDecode(req.headers.authorization);
 
                 // check acces control
-                if (typeof userprofile.access === 'undefined' || !userprofile.access.staff.delete) {
+                if (typeof userprofile.access === 'undefined' || typeof userprofile.access.staff === undefined || !userprofile.access.staff.delete) {
                     return Boom.badRequest('Access Denied');
                 }
 

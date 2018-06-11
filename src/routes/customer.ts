@@ -25,7 +25,7 @@ module.exports = [
                 const params = req.params;
                 const find: any = { active: true, };
                 const userProfile = jwtDecode(req.headers.authorization);
-                if (typeof userProfile.access === undefined || !userProfile.access.customer.read) { return Boom.badRequest('Access Denied!'); }
+                if (typeof userProfile.access === 'undefined' || !userProfile.access.customer.read) { return Boom.badRequest('Access Denied!'); }
                 if (params.id === '{id}') { delete params.id; }
                 if (params.id) { find._id = mongoObjectId(params.id); }
 
@@ -148,7 +148,7 @@ module.exports = [
                 const payload = req.payload;
                 const query = req.query;
                 const userProfile = jwtDecode(req.headers.authorization);
-                if (typeof userProfile.access === undefined || !userProfile.access.customer.update) { return Boom.badRequest('Access Denied!'); }
+                if (typeof userProfile.access === 'undefined' || !userProfile.access.customer.update) { return Boom.badRequest('Access Denied!'); }
                 if (payload.password) { payload.password = Util.hash(payload.password); }
 
                 // Check No Data
@@ -231,7 +231,7 @@ module.exports = [
         method: 'DELETE',
         path: '/customer/{id}',
         config: {
-            //auth: false,
+            // auth: false,
             description: 'delete customer ',
             notes: 'delete customer',
             tags: ['api'],
@@ -246,7 +246,7 @@ module.exports = [
                 const mongo = Util.getDb(req);
                 const params = req.params;
                 const userProfile = jwtDecode(req.headers.authorization);
-                if (typeof userProfile.access === undefined || !userProfile.access.customer.delete) { return Boom.badRequest('Access Denied!'); }
+                if (typeof userProfile.access === 'undefined' || !userProfile.access.customer.delete) { return Boom.badRequest('Access Denied!'); }
                 const del = await mongo.collection('customer').deleteOne({ _id: mongoObjectId(params.id) });
 
                 // Return 200
@@ -290,14 +290,14 @@ module.exports = [
                 const payload = req.query;
                 const options: any = { query: {}, sort: { crt: -1 }, limit: 0 };
                 const userProfile = jwtDecode(req.headers.authorization);
-                if (typeof userProfile.access === undefined || !userProfile.access.customer.read) { return Boom.badRequest('Access Denied!'); }
+                if (typeof userProfile.access === 'undefined' || !userProfile.access.customer.read) { return Boom.badRequest('Access Denied!'); }
 
                 // Loop from key in payload to check query string and assign value to find/sort/limit data
                 for (const key in payload) {
                     switch (key) {
                         case 'begin':
                         case 'end':
-                            if (options.query.crt === undefined) {
+                            if (options.query.crt === 'undefined') {
                                 options.query.crt = {};
                             }
                             key === 'begin'
