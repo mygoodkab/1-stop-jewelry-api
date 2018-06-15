@@ -27,10 +27,9 @@ export class Util {
 	public static jwtKey() {
 		return '6C76rmkogGjhnILHgdVfogcn5cYMvjZk';
 	}
-	public static async writeLog(request, payload, collection, method) {
+	public static async writeLog(request, payload, collection) {
 		try {
 			const mongo = Util.getDb(request);
-			payload.method = method;
 			const insertlog = await mongo.collection(collection).insert(payload);
 		} catch (error) {
 			return false;

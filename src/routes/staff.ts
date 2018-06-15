@@ -122,10 +122,11 @@ module.exports = [
                     password: Joi.string().min(1).max(100).regex(config.regex).required().description('password'),
                     type: Joi.string().valid(['admin', 'superadmin', 'user']),
                     imageId: Joi.string().length(24).optional().description('id Image'),
+                    fullname: Joi.string().description('customer fristname'),
+                    email: Joi.string().description('customer email'),
+                    address: Joi.string().description('address'),
+                    tel: Joi.string().description('customer phone number'),
                     access: Joi.object().description('list access control'),
-                    firstname: Joi.string().min(1).max(40).regex(config.regex),
-                    lastname: Joi.string().min(1).max(40).regex(config.regex),
-                    address: Joi.string().optional().description('address'),
                     // address: Joi.object({
                     //     no: Joi.string().description('home'),
                     //     alley: Joi.string().description('alley'),
@@ -135,8 +136,6 @@ module.exports = [
                     //     province: Joi.string().description('province'),
                     //     postalcode: Joi.string().description('postal code'),
                     // }).description('address'),
-                    tel: Joi.string().min(1).max(12).regex(config.regex),
-                    email: Joi.string().email(),
                 },
             },
         },
@@ -184,7 +183,6 @@ module.exports = [
                     password: Joi.string().min(1).max(100).regex(config.regex).description('password'),
                     type: Joi.string().valid(['admin', 'super-admin', 'user']),
                     imageId: Joi.string().length(24).optional().description('id Image'),
-                    access: Joi.object().description('list access control'),
                     firstname: Joi.string().min(1).max(40).regex(config.regex),
                     lastname: Joi.string().min(1).max(40).regex(config.regex),
                     address: Joi.string().optional().description('address'),
@@ -199,6 +197,7 @@ module.exports = [
                     // }).description('address'),
                     mobile: Joi.string().min(1).max(12).regex(config.regex),
                     email: Joi.string().email(),
+                    access: Joi.object().description('list access control'),
                 },
                 query: {
                     id: Joi.string().length(24).required().description('id staff').required(),
@@ -232,7 +231,7 @@ module.exports = [
                 const update = await mongo.collection('staff').update({ _id: mongoObjectId(payload.staffId) }, { $set: updateInfo });
 
                 // Create & Insert staff-Log
-                const writeLog = await Util.writeLog(req, payload, 'staff-log', 'update');
+                const writeLog = await Util.writeLog(req, payload, 'staff-log');
 
                 // Return 200
                 return ({
@@ -292,7 +291,7 @@ module.exports = [
                 const update = await mongo.collection('staff').update({ _id: mongoObjectId(userprofile._id) }, { $set: updateInfo });
 
                 // Create & Insert staff-Log
-                const writeLog = await Util.writeLog(req, payload, 'staff-log', 'update');
+                const writeLog = await Util.writeLog(req, payload, 'staff-log');
 
                 // Return 200
                 return ({
@@ -385,5 +384,4 @@ module.exports = [
         },
 
     },
-
 ];

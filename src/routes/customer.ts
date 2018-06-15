@@ -7,7 +7,7 @@ import * as jwtDecode from 'jwt-decode';
 const mongoObjectId = ObjectId;
 
 module.exports = [
-    {  // GET customer for admin 
+    {  // GET customer for admin
         method: 'GET',
         path: '/customer/{id?}',
         config: {
@@ -85,6 +85,7 @@ module.exports = [
                     tel: Joi.string().description('customer phone number'),
                     username: Joi.string().required().description('customer phone number'),
                     password: Joi.string().required().description('password'),
+                    imageId: Joi.string().length(24).optional().description('id Image'),
                 },
             },
         },
@@ -107,7 +108,7 @@ module.exports = [
                 // Create & Insert customer-Log
                 const log = Object.assign({}, payload);
                 log.customerId = insert.insertedId.toString();
-                const writeLog = await Util.writeLog(req, log, 'customer-log', 'insert');
+                const writeLog = await Util.writeLog(req, log, 'customer-log');
 
                 return ({
                     massage: 'OK',
@@ -166,7 +167,7 @@ module.exports = [
                 const update = await mongo.collection('customer').update({ _id: mongoObjectId(payload.customerId) }, { $set: updateInfo });
 
                 // Create & Insert customer-Log
-                const writeLog = await Util.writeLog(req, payload, 'customer-log', 'update');
+                const writeLog = await Util.writeLog(req, payload, 'customer-log');
 
                 // Return 200
                 return ({
@@ -213,7 +214,7 @@ module.exports = [
                 const update = await mongo.collection('customer').update({ _id: mongoObjectId(userProfile._id) }, { $set: updateInfo });
 
                 // Create & Insert customer-Log
-                const writeLog = await Util.writeLog(req, payload, 'customer-log', 'update');
+                const writeLog = await Util.writeLog(req, payload, 'customer-log');
 
                 // Return 200
                 return ({

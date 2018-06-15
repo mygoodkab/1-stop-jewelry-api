@@ -35,7 +35,7 @@ const config = {
             'jpeg',
         ],
         pdf: ['pdf'],
-        design: ['3ds', 'iges', 'dxf', 'stl', 'ifc', 'obj', 'dwg', 'ai', 'png', 'jpg', 'jpeg'],
+        design: ['3ds', 'iges', 'dxf', 'stl', 'ifc', 'obj', 'dwg', 'ai', 'png', 'pdf', 'sldprt', 'psd', 'igs', '3dm'],
     },
     jwt: {
         timeout: '8h',

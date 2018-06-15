@@ -99,7 +99,8 @@ module.exports = [
                 payload: {
                     draftOrderId: Joi.string().length(24).required().description('id draft order'),
                     userId: Joi.string().length(24).required().description('id user'),
-                    job: Joi.array().items(Joi.object()).description('Job Order')
+                    job: Joi.array().items(Joi.object()).description('Job Order'),
+                    active: Joi.boolean().valid(true).description('active'),
                 },
             },
         },

@@ -30,7 +30,6 @@ module.exports = [
                 if (params.id) { find._id = mongoObjectId(params.id); }
 
                 const res = await mongo.collection('orders').find(find).sort({ crt: -1 }).toArray();
-
                 return {
                     data: res,
                     message: 'OK',
@@ -167,6 +166,7 @@ module.exports = [
                     draftOrderId: Joi.string().length(24).description('id draftOrderId'),
                     orderNo: Joi.string().required().description('order number'),
                     job: Joi.array().items(Joi.object()).required().description('orders detail'),
+                    mdt: Joi.any().description('update time'),
                 },
             },
         },
@@ -182,16 +182,17 @@ module.exports = [
                 payload.active = true;
                 // payload.status = 'In Process';
 
+                payload.userProfile = userProfile;
                 const insert = await mongo.collection('orders').insertOne(payload);
 
                 // update draf status to false
                 const update = await mongo.collection('draftOrder').update({ _id: mongoObjectId(payload.draftOrderId) }, { $set: { active: false } });
 
                 // Create & Insert orders-Log
-                const log = Object.assign({}, payload);
-                log.ordersId = insert.insertedId.toString();
+                // const log = Object.assign({}, payload);
+                // log.ordersId = insert.insertedId.toString();
 
-                const writeLog = await Util.writeLog(req, log, 'orders-log', 'insert');
+                // const writeLog = await Util.writeLog(req, log, 'orders-log', 'insert');
 
                 return ({
                     massage: 'OK',
@@ -237,13 +238,16 @@ module.exports = [
 
                 // Create Update Info & Update orders
                 const updateInfo = Object.assign({}, payload);
-                delete updateInfo.ordersId;
                 updateInfo.mdt = Date.now();
-
                 const update = await mongo.collection('orders').update({ _id: mongoObjectId(query.id) }, { $set: updateInfo });
 
                 // Create & Insert orders-Log
-                const writeLog = await Util.writeLog(req, payload, 'orders-log', 'update');
+                const logInfo: any = {};
+                logInfo.mdt = Date.now();
+                logInfo.orderId = query.id;
+                logInfo.user = userProfile;
+                logInfo.metadata = Object.assign({}, payload);
+                const writeLog = await mongo.collection('orders-log').insert(logInfo);
 
                 // Return 200
                 return ({
@@ -283,13 +287,18 @@ module.exports = [
 
                 // Create Update Info & Update orders
                 const updateInfo = Object.assign({}, payload);
-                delete updateInfo.ordersId;
                 updateInfo.mdt = Date.now();
 
                 const update = await mongo.collection('orders').update({ _id: mongoObjectId(query.id) }, { $set: updateInfo });
 
                 // Create & Insert orders-Log
-                const writeLog = await Util.writeLog(req, payload, 'orders-log', 'update');
+                const logInfo: any = {};
+                logInfo.mdt = Date.now();
+                logInfo.orderId = query.id;
+                logInfo.user = userProfile;
+                logInfo.metadata = Object.assign({}, payload);
+                const writeLog = await mongo.collection('orders-log').insert(logInfo);
+
 
                 // Return 200
                 return ({
@@ -459,7 +468,40 @@ module.exports = [
         },
 
     },
+    {  // GET orders LOG
+        method: 'GET',
+        path: '/orders/log/{orderId}',
+        config: {
+            // auth: false,
+            description: 'Get orders',
+            tags: ['api'],
+            validate: {
+                params: {
+                    orderId: Joi.string().required().description('id orders'),
+                },
+            },
+        }, handler: async (req, reply) => {
+            try {
+                const mongo = Util.getDb(req);
+                const params = req.params;
+                const userProfile = jwtDecode(req.headers.authorization);
+                if (typeof userProfile.access === 'undefined' || !userProfile.access.order.read) { return Boom.badRequest('Access Denied!'); }
+                // if (params.id === '{id}') { delete params.id; }
+                // if (params.id) { find._id = mongoObjectId(params.id); }
 
+                const res = await mongo.collection('orders-log').find({ oderId: params.ordersId }).sort({ crt: -1 }).toArray();
+                return {
+                    data: res,
+                    message: 'OK',
+                    statusCode: 200,
+                };
+
+            } catch (error) {
+                return (Boom.badGateway(error));
+            }
+        },
+
+    },
     // {  // PUT orders job status
     //     method: 'PUT',
     //     path: '/orders/update-job',

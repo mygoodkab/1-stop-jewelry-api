@@ -17,6 +17,6 @@ const access = {
         update: false,
         delete: false,
     },
-}
+};
 
-export { access }
+export { access };
