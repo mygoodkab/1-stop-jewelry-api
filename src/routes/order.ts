@@ -216,6 +216,11 @@ module.exports = [
             validate: {
                 payload: {
                     job: Joi.array().items(Joi.object()).required().description('orders detail'),
+                    log: Joi.array().items(Joi.object({
+                        job: Joi.string(),
+                        currentStatus: Joi.string(),
+                        perviousStatus: Joi.string(),
+                    })).description('orders log'),
                 },
                 query: {
                     id: Joi.string().length(24).required().description('id ordersId'),
@@ -237,16 +242,15 @@ module.exports = [
                 }
 
                 // Create Update Info & Update orders
-                const updateInfo = Object.assign({}, payload);
-                updateInfo.mdt = Date.now();
-                const update = await mongo.collection('orders').update({ _id: mongoObjectId(query.id) }, { $set: updateInfo });
+                const update = await mongo.collection('orders').update({ _id: mongoObjectId(query.id) }, { $set: { job: payload.job, mdt: Date.now() } });
 
                 // Create & Insert orders-Log
                 const logInfo: any = {};
                 logInfo.mdt = Date.now();
-                logInfo.orderId = query.id;
+                logInfo.ordersId = query.id;
+                logInfo.detail = payload.log;
                 logInfo.user = userProfile;
-                logInfo.metadata = Object.assign({}, payload);
+                logInfo.metadata = payload.job;
                 const writeLog = await mongo.collection('orders-log').insert(logInfo);
 
                 // Return 200
@@ -272,6 +276,11 @@ module.exports = [
             validate: {
                 payload: {
                     job: Joi.array().items(Joi.object()).required().description('orders detail'),
+                    log: Joi.array().items(Joi.object({
+                        job: Joi.string(),
+                        currentStatus: Joi.string(),
+                        perviousStatus: Joi.string(),
+                    })).description('orders log'),
                 },
                 query: {
                     id: Joi.string().length(24).required().description('id ordersId'),
@@ -286,17 +295,15 @@ module.exports = [
                 const userProfile = jwtDecode(req.headers.authorization);
 
                 // Create Update Info & Update orders
-                const updateInfo = Object.assign({}, payload);
-                updateInfo.mdt = Date.now();
-
-                const update = await mongo.collection('orders').update({ _id: mongoObjectId(query.id) }, { $set: updateInfo });
+                const update = await mongo.collection('orders').update({ _id: mongoObjectId(query.id) }, { $set: { job: payload.job, mdt: Date.now() } });
 
                 // Create & Insert orders-Log
                 const logInfo: any = {};
                 logInfo.mdt = Date.now();
-                logInfo.orderId = query.id;
+                logInfo.ordersId = query.id;
+                logInfo.detail = payload.log;
                 logInfo.user = userProfile;
-                logInfo.metadata = Object.assign({}, payload);
+                logInfo.metadata = payload.job;
                 const writeLog = await mongo.collection('orders-log').insert(logInfo);
 
 
@@ -470,14 +477,14 @@ module.exports = [
     },
     {  // GET orders LOG
         method: 'GET',
-        path: '/orders/log/{orderId}',
+        path: '/orders/log/{ordersId}',
         config: {
             // auth: false,
             description: 'Get orders',
             tags: ['api'],
             validate: {
                 params: {
-                    orderId: Joi.string().required().description('id orders'),
+                    ordersId: Joi.string().required().description('id orders'),
                 },
             },
         }, handler: async (req, reply) => {
@@ -489,7 +496,7 @@ module.exports = [
                 // if (params.id === '{id}') { delete params.id; }
                 // if (params.id) { find._id = mongoObjectId(params.id); }
 
-                const res = await mongo.collection('orders-log').find({ oderId: params.ordersId }).sort({ crt: -1 }).toArray();
+                const res = await mongo.collection('orders-log').find({ ordersId: params.ordersId }).sort({ mdt: -1 }).toArray();
                 return {
                     data: res,
                     message: 'OK',
