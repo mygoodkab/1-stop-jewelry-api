@@ -217,7 +217,7 @@ module.exports = [
                 payload: {
                     job: Joi.array().items(Joi.object()).required().description('orders detail'),
                     log: Joi.array().items(Joi.object({
-                        job: Joi.string(),
+                        process: Joi.string(),
                         currentStatus: Joi.string(),
                         perviousStatus: Joi.string(),
                     })).description('orders log'),
@@ -248,9 +248,9 @@ module.exports = [
                 const logInfo: any = {};
                 logInfo.mdt = Date.now();
                 logInfo.ordersId = query.id;
-                logInfo.detail = payload.log;
+                logInfo.log = payload.log;
                 logInfo.user = userProfile;
-                logInfo.metadata = payload.job;
+                logInfo.job = payload.job;
                 const writeLog = await mongo.collection('orders-log').insert(logInfo);
 
                 // Return 200
@@ -277,7 +277,7 @@ module.exports = [
                 payload: {
                     job: Joi.array().items(Joi.object()).required().description('orders detail'),
                     log: Joi.array().items(Joi.object({
-                        job: Joi.string(),
+                        process: Joi.string(),
                         currentStatus: Joi.string(),
                         perviousStatus: Joi.string(),
                     })).description('orders log'),
@@ -301,9 +301,9 @@ module.exports = [
                 const logInfo: any = {};
                 logInfo.mdt = Date.now();
                 logInfo.ordersId = query.id;
-                logInfo.detail = payload.log;
+                logInfo.log = payload.log;
                 logInfo.user = userProfile;
-                logInfo.metadata = payload.job;
+                logInfo.job = payload.job;
                 const writeLog = await mongo.collection('orders-log').insert(logInfo);
 
 

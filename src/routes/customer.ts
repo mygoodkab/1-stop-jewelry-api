@@ -79,13 +79,20 @@ module.exports = [
             tags: ['api'],
             validate: {
                 payload: {
-                    fullname: Joi.string().description('customer fristname'),
-                    email: Joi.string().description('customer email'),
+                    firstname: Joi.string().description('customer fristname'),
+                    lastname: Joi.string().description('customer lastname'),
+                    passport: Joi.string().description('cutomer passport / ID'),
+                    birthday: Joi.string().description('cutomer birthday'),
+                    companyname: Joi.string().description('company name'),
+                    tax: Joi.string().description('company tax'),
+                    contactor: Joi.string().description('company contactor'),
+                    email: Joi.string().description('email'),
                     address: Joi.string().description('address'),
-                    tel: Joi.string().description('customer phone number'),
-                    username: Joi.string().required().description('customer phone number'),
+                    tel: Joi.string().description('phone number'),
+                    username: Joi.string().required().description('username'),
                     password: Joi.string().required().description('password'),
                     imageId: Joi.string().length(24).optional().description('id Image'),
+                    isCompany: Joi.boolean().required().description('is company'),
                 },
             },
         },
@@ -132,10 +139,16 @@ module.exports = [
             validate: {
                 payload: {
                     //  customerId: Joi.string().length(24).required().description('id customerId'),
-                    fullname: Joi.string().description('customer fristname'),
-                    email: Joi.string().description('customer email'),
+                    firstname: Joi.string().description('customer fristname'),
+                    lastname: Joi.string().description('customer lastname'),
+                    passport: Joi.string().description('cutomer passport / ID'),
+                    birthday: Joi.string().description('cutomer birthday'),
+                    companyname: Joi.string().description('company name'),
+                    tax: Joi.string().description('company tax'),
+                    contactor: Joi.string().description('company contactor'),
+                    email: Joi.string().description('email'),
                     address: Joi.string().description('address'),
-                    tel: Joi.string().description('customer phone number'),
+                    tel: Joi.string().description('phone number'),
                     password: Joi.string().description('password'),
                 },
                 query: {
@@ -191,10 +204,17 @@ module.exports = [
             tags: ['api'],
             validate: {
                 payload: {
-                    fullname: Joi.string().description('customer fristname'),
-                    email: Joi.string().description('customer email'),
+                    //  customerId: Joi.string().length(24).required().description('id customerId'),
+                    firstname: Joi.string().description('customer fristname'),
+                    lastname: Joi.string().description('customer lastname'),
+                    passport: Joi.string().description('cutomer passport / ID'),
+                    birthday: Joi.string().description('cutomer birthday'),
+                    companyname: Joi.string().description('company name'),
+                    tax: Joi.string().description('company tax'),
+                    contactor: Joi.string().description('company contactor'),
+                    email: Joi.string().description('email'),
                     address: Joi.string().description('address'),
-                    tel: Joi.string().description('customer phone number'),
+                    tel: Joi.string().description('phone number'),
                     password: Joi.string().description('password'),
                 },
             },
@@ -209,7 +229,6 @@ module.exports = [
 
                 // Create Update Info & Update customer
                 const updateInfo = Object.assign({}, payload);
-                delete updateInfo.customerId;
                 updateInfo.mdt = Date.now();
                 const update = await mongo.collection('customer').update({ _id: mongoObjectId(userProfile._id) }, { $set: updateInfo });
 
